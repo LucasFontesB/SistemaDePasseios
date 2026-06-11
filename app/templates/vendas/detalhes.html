@@ -63,6 +63,7 @@
         </h1>
     </div>
     <a href="/vendas/{{ venda.id }}/editar" class="btn btn-outline">✏️ Editar</a>
+        <a href="/vendas/{{ venda.id }}/pdf" target="_blank" class="btn btn-primary">🖨️ Gerar PDF</a>
 </div>
 
 <div style="display: grid; grid-template-columns: 1fr 320px; gap: 1.5rem; align-items: start;">
@@ -99,6 +100,7 @@
                 <div class="detail-item"><label>Valor Total</label><span class="valor-destaque">R$ {{ "%.2f"|format(venda.valor_total)|replace(".", ",") }}</span></div>
                 <div class="detail-item"><label>% Comissão</label><span>{{ "%.2f"|format(venda.percentual_comissao)|replace(".", ",") }}%</span></div>
                 <div class="detail-item"><label>Valor Comissão</label><span class="comissao-destaque">R$ {{ "%.2f"|format(venda.valor_comissao)|replace(".", ",") }}</span></div>
+                <div class="detail-item"><label>Forma de Pagamento</label><span>{{ forma_pagamento_labels.get(venda.forma_pagamento, "Não informada") if venda.forma_pagamento else "Não informada" }}</span></div>
             </div>
         </div>
 

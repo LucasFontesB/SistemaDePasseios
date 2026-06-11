@@ -14,7 +14,7 @@ python-multipart==0.0.12
 
 # Banco de dados
 sqlalchemy==2.0.36
-psycopg2-binary==2.9.9
+psycopg2-binary==2.9.10
 
 # Segurança
 bcrypt==4.2.1
@@ -26,6 +26,9 @@ python-dotenv==1.0.1
 # Validação
 pydantic==2.10.1
 pydantic-settings==2.6.1
+
+# Geração de PDF
+reportlab==4.2.5
 
 # Qualidade de código
 black==24.10.0

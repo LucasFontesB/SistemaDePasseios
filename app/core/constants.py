@@ -60,3 +60,26 @@ UPLOAD_ALLOWED_MIMETYPES = {
 }
 
 UPLOAD_MAX_SIZE_MB = 10
+
+# =============================================================================
+# Formas de pagamento
+# =============================================================================
+
+FORMA_PAGAMENTO_DINHEIRO        = "DINHEIRO"
+FORMA_PAGAMENTO_PIX             = "PIX"
+FORMA_PAGAMENTO_DEBITO          = "CARTAO_DEBITO"
+FORMA_PAGAMENTO_CREDITO         = "CARTAO_CREDITO"
+
+FORMA_PAGAMENTO_CHOICES = [
+    FORMA_PAGAMENTO_DINHEIRO,
+    FORMA_PAGAMENTO_PIX,
+    FORMA_PAGAMENTO_DEBITO,
+    FORMA_PAGAMENTO_CREDITO,
+]
+
+FORMA_PAGAMENTO_LABELS = {
+    FORMA_PAGAMENTO_DINHEIRO: "Dinheiro",
+    FORMA_PAGAMENTO_PIX:      "PIX",
+    FORMA_PAGAMENTO_DEBITO:   "Cartão de Débito",
+    FORMA_PAGAMENTO_CREDITO:  "Cartão de Crédito",
+}

@@ -95,6 +95,7 @@ class SaleRepository:
         data_saida: date,
         horario_saida,
         observacao: str,
+        forma_pagamento: str | None,
         usuario_id: uuid.UUID,
     ) -> Venda:
         venda = Venda(
@@ -113,6 +114,7 @@ class SaleRepository:
             data_saida=data_saida,
             horario_saida=horario_saida,
             observacao=observacao,
+            forma_pagamento=forma_pagamento,
             usuario_id=usuario_id,
             status="PENDENTE",
         )
@@ -137,6 +139,7 @@ class SaleRepository:
         data_saida: date,
         horario_saida,
         observacao: str,
+        forma_pagamento: str | None,
     ) -> Venda:
         venda.contratante = contratante
         venda.telefone = telefone
@@ -151,6 +154,7 @@ class SaleRepository:
         venda.data_saida = data_saida
         venda.horario_saida = horario_saida
         venda.observacao = observacao
+        venda.forma_pagamento = forma_pagamento
         venda.atualizado_em = datetime.utcnow()
         self.db.commit()
         self.db.refresh(venda)

@@ -158,6 +158,16 @@
                 <input type="number" name="valor_total" id="valor_total" class="form-control"
                     value="{{ val('valor_total') }}" min="0" step="0.01" placeholder="0,00" required>
             </div>
+            <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">Forma de Pagamento</label>
+                <select name="forma_pagamento" class="form-control">
+                    <option value="">Não informada</option>
+                    <option value="DINHEIRO"      {% if (form_values is defined and form_values.forma_pagamento == 'DINHEIRO')      or (is_edit and venda.forma_pagamento == 'DINHEIRO') %}selected{% endif %}>Dinheiro</option>
+                    <option value="PIX"           {% if (form_values is defined and form_values.forma_pagamento == 'PIX')           or (is_edit and venda.forma_pagamento == 'PIX') %}selected{% endif %}>PIX</option>
+                    <option value="CARTAO_DEBITO"  {% if (form_values is defined and form_values.forma_pagamento == 'CARTAO_DEBITO')  or (is_edit and venda.forma_pagamento == 'CARTAO_DEBITO') %}selected{% endif %}>Cartão de Débito</option>
+                    <option value="CARTAO_CREDITO" {% if (form_values is defined and form_values.forma_pagamento == 'CARTAO_CREDITO') or (is_edit and venda.forma_pagamento == 'CARTAO_CREDITO') %}selected{% endif %}>Cartão de Crédito</option>
+                </select>
+            </div>
             <div style="grid-column: span 2;">
                 <div class="comissao-box">
                     <div class="comissao-item">

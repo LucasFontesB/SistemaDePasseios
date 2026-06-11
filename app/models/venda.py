@@ -41,6 +41,7 @@ class Venda(Base):
 
     # PENDENTE, AGUARDANDO_PAGAMENTO, CONFIRMADO, EMBARCADO, FINALIZADO, CANCELADO, REEMBOLSADO
     status: Mapped[str] = mapped_column(String(30), nullable=False, default="PENDENTE")
+    forma_pagamento: Mapped[str | None] = mapped_column(String(30), nullable=True)
 
     observacao: Mapped[str | None] = mapped_column(Text, nullable=True)
 

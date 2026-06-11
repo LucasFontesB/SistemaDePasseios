@@ -158,3 +158,11 @@ CREATE TABLE IF NOT EXISTS venda_historico (
 
 CREATE INDEX IF NOT EXISTS idx_venda_historico_venda    ON venda_historico (venda_id);
 CREATE INDEX IF NOT EXISTS idx_venda_historico_criado   ON venda_historico (criado_em);
+
+-- =============================================================================
+-- V2.0 — Adicionar forma de pagamento na tabela vendas
+-- Execute no banco de dados passeios
+-- =============================================================================
+
+ALTER TABLE vendas
+ADD COLUMN IF NOT EXISTS forma_pagamento VARCHAR(30) NULL;
