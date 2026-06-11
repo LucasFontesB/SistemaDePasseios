@@ -99,6 +99,7 @@ a:hover {
 
 .btn-primary  { background: var(--primary);  color: var(--white); }
 .btn-success  { background: var(--success);  color: var(--white); }
+.btn-whatsapp { background: #25D366; color: var(--white); }
 .btn-danger   { background: var(--danger);   color: var(--white); }
 .btn-warning  { background: var(--warning);  color: var(--text); }
 .btn-secondary { background: #6C757D; color: var(--white); }

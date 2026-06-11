@@ -74,6 +74,7 @@ class SaleService:
             data_saida=date.fromisoformat(form["data_saida"]),
             horario_saida=horario_saida,
             observacao=form.get("observacao", "").strip(),
+            forma_pagamento=form.get("forma_pagamento") or None,
             usuario_id=usuario_id,
         )
 
@@ -157,6 +158,7 @@ class SaleService:
             data_saida=nova_data,
             horario_saida=horario_saida,
             observacao=form.get("observacao", "").strip(),
+            forma_pagamento=form.get("forma_pagamento") or None,
         )
 
         if alteracoes:

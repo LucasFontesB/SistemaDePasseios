@@ -63,7 +63,20 @@
         </h1>
     </div>
     <a href="/vendas/{{ venda.id }}/editar" class="btn btn-outline">✏️ Editar</a>
-        <a href="/vendas/{{ venda.id }}/pdf" target="_blank" class="btn btn-primary">🖨️ Gerar PDF</a>
+    <a href="/vendas/{{ venda.id }}/pdf" target="_blank" class="btn btn-primary">🖨️ Gerar PDF</a>
+    {% set telefone_limpo = venda.telefone | replace(" ", "") | replace("-", "") | replace("(", "") | replace(")", "") if venda.telefone else "" %}
+    {% if venda.telefone %}
+        {% set horario = venda.horario_saida.strftime("%H:%M") if venda.horario_saida else "A confirmar" %}
+        {% set embarcacao = venda.embarcacao.nome if venda.embarcacao else "A confirmar" %}
+        {% set forma = forma_pagamento_labels.get(venda.forma_pagamento, "Nao informada") if venda.forma_pagamento else "Nao informada" %}
+        {% set msg = "Ola " + venda.contratante.split()[0] + "!%0A%0ASua reserva de passeio feita no Hotel Aconchego Do Velho Chico esta confirmada!%0A%0A*VOUCHER DE RESERVA*%0ANro " + venda.numero_venda + "%0A%0APasseio: " + venda.passeio.nome + "%0AData: " + venda.data_saida.strftime("%d/%m/%Y") + "%0AHorario: " + horario + "%0AEmbarcacao: " + embarcacao + "%0APassageiros: " + venda.adultos|string + " adulto(s), " + venda.criancas|string + " crianca(s)%0A%0AValor: R$ " + "%.2f"|format(venda.valor_total)|replace(".", ",") + "%0APagamento: " + forma + "%0A%0AQualquer duvida, estamos a disposicao!%0AHotel Aconchego Do Velho Chico" %}
+        <a href="https://wa.me/55{{ telefone_limpo }}?text={{ msg }}" target="_blank" class="btn btn-success">💬 WhatsApp</a>
+    {% else %}
+        <button type="button" class="btn btn-success"
+            onclick="alert('Esta venda não possui telefone cadastrado. Edite a venda e adicione o número para enviar pelo WhatsApp.')">
+            💬 WhatsApp
+        </button>
+    {% endif %}
 </div>
 
 <div style="display: grid; grid-template-columns: 1fr 320px; gap: 1.5rem; align-items: start;">
