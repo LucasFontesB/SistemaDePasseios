@@ -1,0 +1,96 @@
+{% extends "layouts/base.html" %}
+{% block title %}Tipos de Passeio — Gestão de Passeios{% endblock %}
+
+{% block extra_css %}
+<style>
+.cadastro-layout {
+    display: grid;
+    grid-template-columns: 1fr 360px;
+    gap: 1.5rem;
+    align-items: start;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <div>
+        <div class="breadcrumb">
+            <a href="/dashboard">Dashboard</a>
+            <span class="breadcrumb-sep">›</span>
+            <span>Tipos de Passeio</span>
+        </div>
+        <h1 class="page-title">Tipos de Passeio</h1>
+    </div>
+</div>
+
+<div class="cadastro-layout">
+
+    <!-- Listagem -->
+    <div class="table-wrapper">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if tipos %}
+                    {% for t in tipos %}
+                    <tr>
+                        <td><strong>{{ t.nome }}</strong></td>
+                        <td style="white-space:nowrap;">
+                            <a href="/tipos-passeio/{{ t.id }}/editar" class="btn btn-outline btn-sm">Editar</a>
+                            <form method="post" action="/tipos-passeio/{{ t.id }}/desativar" style="display:inline;">
+                                <button type="submit" class="btn btn-danger btn-sm"
+                                    onclick="return confirm('Desativar {{ t.nome }}?')">Desativar</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr><td colspan="2" class="table-empty">Nenhum tipo cadastrado.</td></tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Formulário -->
+    <div class="card">
+        <div class="card-body">
+            <h2 class="card-title">
+                {% if editando %}Editar Tipo{% else %}Novo Tipo{% endif %}
+            </h2>
+
+            {% if erros %}
+            <div class="alert alert-danger">
+                {% for e in erros %}<div>• {{ e }}</div>{% endfor %}
+            </div>
+            {% endif %}
+
+            <form method="post"
+                action="{% if editando %}/tipos-passeio/{{ editando.id }}/editar{% else %}/tipos-passeio{% endif %}">
+
+                <div class="form-group">
+                    <label class="form-label">Nome *</label>
+                    <input type="text" name="nome" class="form-control"
+                        value="{% if editando %}{{ editando.nome }}{% elif form_values is defined %}{{ form_values.nome }}{% endif %}"
+                        placeholder="Ex: Compartilhado" required>
+                </div>
+
+                <div style="display:flex; gap:0.5rem;">
+                    <button type="submit" class="btn btn-primary">💾 Salvar</button>
+                    {% if editando %}
+                    <a href="/tipos-passeio" class="btn btn-outline">Cancelar</a>
+                    {% endif %}
+                </div>
+
+            </form>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

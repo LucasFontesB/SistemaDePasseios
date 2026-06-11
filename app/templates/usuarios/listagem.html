@@ -1,0 +1,147 @@
+{% extends "layouts/base.html" %}
+{% block title %}Usuários — Gestão de Passeios{% endblock %}
+
+{% block extra_css %}
+<style>
+.cadastro-layout {
+    display: grid;
+    grid-template-columns: 1fr 360px;
+    gap: 1.5rem;
+    align-items: start;
+}
+.perfil-badge {
+    display: inline-block;
+    padding: 0.2rem 0.6rem;
+    font-size: 11px;
+    font-weight: 600;
+    border-radius: 20px;
+}
+.perfil-admin    { background: #f3e8ff; color: #6b21a8; }
+.perfil-gerencia { background: #dbeafe; color: #1d4ed8; }
+.perfil-recepcao { background: #dcfce7; color: #15803d; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <div>
+        <div class="breadcrumb">
+            <a href="/dashboard">Dashboard</a>
+            <span class="breadcrumb-sep">›</span>
+            <span>Usuários</span>
+        </div>
+        <h1 class="page-title">Usuários</h1>
+    </div>
+</div>
+
+<div class="cadastro-layout">
+
+    <!-- Listagem -->
+    <div class="table-wrapper">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>E-mail</th>
+                    <th>Perfil</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if usuarios %}
+                    {% for u in usuarios %}
+                    <tr>
+                        <td><strong>{{ u.nome }}</strong></td>
+                        <td class="text-muted">{{ u.email }}</td>
+                        <td>
+                            <span class="perfil-badge perfil-{{ u.perfil.lower() }}">
+                                {{ perfil_labels[u.perfil] }}
+                            </span>
+                        </td>
+                        <td style="white-space:nowrap;">
+                            <a href="/usuarios/{{ u.id }}/editar" class="btn btn-outline btn-sm">Editar</a>
+                            {% if u.id|string != usuario.id|string %}
+                            <form method="post" action="/usuarios/{{ u.id }}/desativar" style="display:inline;">
+                                <button type="submit" class="btn btn-danger btn-sm"
+                                    onclick="return confirm('Desativar {{ u.nome }}?')">Desativar</button>
+                            </form>
+                            {% else %}
+                            <span class="text-muted" style="font-size:12px; margin-left:0.25rem;">você</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr><td colspan="4" class="table-empty">Nenhum usuário cadastrado.</td></tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Formulário -->
+    <div class="card">
+        <div class="card-body">
+            <h2 class="card-title">
+                {% if editando %}Editar Usuário{% else %}Novo Usuário{% endif %}
+            </h2>
+
+            {% if erros %}
+            <div class="alert alert-danger">
+                {% for e in erros %}<div>• {{ e }}</div>{% endfor %}
+            </div>
+            {% endif %}
+
+            <form method="post"
+                action="{% if editando %}/usuarios/{{ editando.id }}/editar{% else %}/usuarios{% endif %}">
+
+                <div class="form-group">
+                    <label class="form-label">Nome *</label>
+                    <input type="text" name="nome" class="form-control"
+                        value="{% if editando %}{{ editando.nome }}{% elif form_values is defined %}{{ form_values.nome }}{% endif %}"
+                        placeholder="Nome completo" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">E-mail *</label>
+                    <input type="email" name="email" class="form-control"
+                        value="{% if editando %}{{ editando.email }}{% elif form_values is defined %}{{ form_values.email }}{% endif %}"
+                        placeholder="email@hotel.com" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">
+                        Senha {% if editando %}<span class="text-muted" style="font-weight:400;">(deixe em branco para não alterar)</span>{% else %}*{% endif %}
+                    </label>
+                    <input type="password" name="senha" class="form-control"
+                        placeholder="{% if editando %}Nova senha (opcional){% else %}Mínimo 8 caracteres{% endif %}"
+                        {% if not editando %}required{% endif %}>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Perfil *</label>
+                    <select name="perfil" class="form-control" required>
+                        <option value="">Selecione...</option>
+                        {% for p in perfil_choices %}
+                        <option value="{{ p }}"
+                            {% if (editando and editando.perfil == p) or (form_values is defined and form_values.perfil == p) %}selected{% endif %}>
+                            {{ perfil_labels[p] }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div style="display:flex; gap:0.5rem;">
+                    <button type="submit" class="btn btn-primary">💾 Salvar</button>
+                    {% if editando %}
+                    <a href="/usuarios" class="btn btn-outline">Cancelar</a>
+                    {% endif %}
+                </div>
+
+            </form>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

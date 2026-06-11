@@ -1,0 +1,38 @@
+# === AMBIENTE PYTHON ===
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+*.log
+
+# === VIRTUAL ENV ===
+.venv/
+venv/
+env/
+
+# === CONFIGURAÇÕES LOCAIS ===
+*.env
+*.ini
+*.cfg
+
+# === CERTIFICADOS E CHAVES ===
+*.crt
+*.key
+*.pem
+
+# === ARQUIVOS TEMPORÁRIOS / BACKUPS ===
+*.bak
+*.tmp
+*.swp
+*.DS_Store
+Thumbs.db
+
+# === CACHE DE IDEs ===
+.vscode/
+.idea/
+
+# === ARQUIVOS DE BUILD (caso use futuramente) ===
+dist/
+build/

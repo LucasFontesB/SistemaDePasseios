@@ -1,0 +1,113 @@
+{% extends "layouts/base.html" %}
+{% block title %}Passeios — Gestão de Passeios{% endblock %}
+
+{% block extra_css %}
+<style>
+.cadastro-layout {
+    display: grid;
+    grid-template-columns: 1fr 360px;
+    gap: 1.5rem;
+    align-items: start;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <div>
+        <div class="breadcrumb">
+            <a href="/dashboard">Dashboard</a>
+            <span class="breadcrumb-sep">›</span>
+            <span>Passeios</span>
+        </div>
+        <h1 class="page-title">Passeios</h1>
+    </div>
+</div>
+
+<div class="cadastro-layout">
+
+    <!-- Listagem -->
+    <div class="table-wrapper">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>Descrição</th>
+                    <th>% Comissão</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if passeios %}
+                    {% for p in passeios %}
+                    <tr>
+                        <td><strong>{{ p.nome }}</strong></td>
+                        <td class="text-muted">{{ p.descricao or "—" }}</td>
+                        <td>{{ "%.2f"|format(p.percentual_comissao)|replace(".", ",") }}%</td>
+                        <td style="white-space:nowrap;">
+                            <a href="/passeios/{{ p.id }}/editar" class="btn btn-outline btn-sm">Editar</a>
+                            <form method="post" action="/passeios/{{ p.id }}/desativar" style="display:inline;">
+                                <button type="submit" class="btn btn-danger btn-sm"
+                                    onclick="return confirm('Desativar {{ p.nome }}?')">Desativar</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr><td colspan="4" class="table-empty">Nenhum passeio cadastrado.</td></tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Formulário -->
+    <div class="card">
+        <div class="card-body">
+            <h2 class="card-title">
+                {% if editando %}Editar Passeio{% else %}Novo Passeio{% endif %}
+            </h2>
+
+            {% if erros %}
+            <div class="alert alert-danger">
+                {% for e in erros %}<div>• {{ e }}</div>{% endfor %}
+            </div>
+            {% endif %}
+
+            <form method="post"
+                action="{% if editando %}/passeios/{{ editando.id }}/editar{% else %}/passeios{% endif %}">
+
+                <div class="form-group">
+                    <label class="form-label">Nome *</label>
+                    <input type="text" name="nome" class="form-control"
+                        value="{% if editando %}{{ editando.nome }}{% elif form_values is defined %}{{ form_values.nome }}{% endif %}"
+                        placeholder="Ex: Maragogi" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Descrição</label>
+                    <textarea name="descricao" class="form-control" rows="2"
+                        placeholder="Descrição opcional...">{% if editando %}{{ editando.descricao or "" }}{% elif form_values is defined %}{{ form_values.descricao }}{% endif %}</textarea>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">% Comissão *</label>
+                    <input type="number" name="percentual_comissao" class="form-control"
+                        value="{% if editando %}{{ editando.percentual_comissao }}{% elif form_values is defined %}{{ form_values.percentual_comissao }}{% endif %}"
+                        min="0" max="100" step="0.01" placeholder="Ex: 10.00" required>
+                </div>
+
+                <div style="display:flex; gap:0.5rem;">
+                    <button type="submit" class="btn btn-primary">💾 Salvar</button>
+                    {% if editando %}
+                    <a href="/passeios" class="btn btn-outline">Cancelar</a>
+                    {% endif %}
+                </div>
+
+            </form>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

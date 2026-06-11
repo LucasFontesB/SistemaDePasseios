@@ -1,0 +1,233 @@
+{% extends "layouts/base.html" %}
+{% block title %}{% if venda %}Editar Venda{% else %}Nova Venda{% endif %} — Gestão de Passeios{% endblock %}
+
+{% block extra_css %}
+<style>
+.form-section {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 1.25rem;
+    box-shadow: var(--shadow);
+}
+.form-section-title {
+    padding: 0.85rem 1.25rem;
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+    border-radius: var(--radius) var(--radius) 0 0;
+}
+.form-section-body {
+    padding: 1.25rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+.form-section-body.full { grid-template-columns: 1fr; }
+.comissao-box {
+    background: #EBF3FF;
+    border: 1px solid #c8dffe;
+    border-radius: var(--radius);
+    padding: 1rem 1.25rem;
+    display: flex;
+    gap: 2rem;
+}
+.comissao-item label { font-size: 12px; color: var(--text-muted); display: block; }
+.comissao-item span  { font-size: 20px; font-weight: 700; color: var(--primary); }
+</style>
+{% endblock %}
+
+{% block content %}
+
+{% set is_edit = venda is not none %}
+
+<div class="page-header">
+    <div>
+        <div class="breadcrumb">
+            <a href="/dashboard">Dashboard</a>
+            <span class="breadcrumb-sep">›</span>
+            <a href="/vendas">Vendas</a>
+            <span class="breadcrumb-sep">›</span>
+            <span>{% if is_edit %}Editar Venda{% else %}Nova Venda{% endif %}</span>
+        </div>
+        <h1 class="page-title">{% if is_edit %}Editar Venda #{{ venda.numero_venda }}{% else %}Nova Venda{% endif %}</h1>
+    </div>
+</div>
+
+{% if erros %}
+<div class="alert alert-danger">
+    {% for erro in erros %}<div>• {{ erro }}</div>{% endfor %}
+</div>
+{% endif %}
+
+<form method="post" action="{% if is_edit %}/vendas/{{ venda.id }}/editar{% else %}/vendas{% endif %}">
+
+    {% macro val(campo, default='') %}
+        {%- if form_values is defined and form_values[campo] is defined -%}
+            {{ form_values[campo] }}
+        {%- elif is_edit and venda[campo] is defined and venda[campo] is not none -%}
+            {{ venda[campo] }}
+        {%- else -%}
+            {{ default }}
+        {%- endif -%}
+    {% endmacro %}
+
+    <!-- Contratante -->
+    <div class="form-section">
+        <div class="form-section-title">Contratante</div>
+        <div class="form-section-body">
+            <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">Nome *</label>
+                <input type="text" name="contratante" class="form-control" value="{{ val('contratante') }}" placeholder="Nome completo" required>
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">Telefone</label>
+                <input type="text" name="telefone" class="form-control" value="{{ val('telefone') }}" placeholder="(00) 00000-0000">
+            </div>
+        </div>
+    </div>
+
+    <!-- Passageiros -->
+    <div class="form-section">
+        <div class="form-section-title">Passageiros</div>
+        <div class="form-section-body">
+            <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">Adultos *</label>
+                <input type="number" name="adultos" class="form-control" value="{{ val('adultos', 1) }}" min="0" required>
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">Crianças</label>
+                <input type="number" name="criancas" class="form-control" value="{{ val('criancas', 0) }}" min="0">
+            </div>
+        </div>
+    </div>
+
+    <!-- Passeio -->
+    <div class="form-section">
+        <div class="form-section-title">Passeio</div>
+        <div class="form-section-body">
+            <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">Passeio *</label>
+                <select name="passeio_id" id="passeio_id" class="form-control" required>
+                    <option value="">Selecione...</option>
+                    {% for p in passeios %}
+                    <option value="{{ p.id }}" data-comissao="{{ p.percentual_comissao }}"
+                        {% if (form_values is defined and form_values.passeio_id == p.id|string) or (is_edit and venda.passeio_id == p.id) %}selected{% endif %}>
+                        {{ p.nome }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">Tipo de Passeio *</label>
+                <select name="tipo_passeio_id" class="form-control" required>
+                    <option value="">Selecione...</option>
+                    {% for t in tipos %}
+                    <option value="{{ t.id }}"
+                        {% if (form_values is defined and form_values.tipo_passeio_id == t.id|string) or (is_edit and venda.tipo_passeio_id == t.id) %}selected{% endif %}>
+                        {{ t.nome }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">Embarcação</label>
+                <select name="embarcacao_id" class="form-control">
+                    <option value="">Nenhuma</option>
+                    {% for e in embarcacoes %}
+                    <option value="{{ e.id }}"
+                        {% if (form_values is defined and form_values.embarcacao_id == e.id|string) or (is_edit and venda.embarcacao_id == e.id) %}selected{% endif %}>
+                        {{ e.nome }} ({{ e.capacidade }} pax)
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Financeiro -->
+    <div class="form-section">
+        <div class="form-section-title">Financeiro</div>
+        <div class="form-section-body">
+            <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">Valor Total (R$) *</label>
+                <input type="number" name="valor_total" id="valor_total" class="form-control"
+                    value="{{ val('valor_total') }}" min="0" step="0.01" placeholder="0,00" required>
+            </div>
+            <div style="grid-column: span 2;">
+                <div class="comissao-box">
+                    <div class="comissao-item">
+                        <label>% Comissão</label>
+                        <span id="display_percentual">{{ "%.2f"|format(venda.percentual_comissao) if is_edit else "0,00" }}%</span>
+                    </div>
+                    <div class="comissao-item">
+                        <label>Valor Comissão</label>
+                        <span id="display_comissao">R$ {{ "%.2f"|format(venda.valor_comissao)|replace(".", ",") if is_edit else "0,00" }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Saída -->
+    <div class="form-section">
+        <div class="form-section-title">Saída</div>
+        <div class="form-section-body">
+            <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">Data *</label>
+                <input type="date" name="data_saida" class="form-control"
+                    value="{% if is_edit %}{{ venda.data_saida.isoformat() }}{% elif form_values is defined %}{{ form_values.data_saida }}{% endif %}" required>
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">Horário</label>
+                <input type="time" name="horario_saida" class="form-control"
+                    value="{% if is_edit and venda.horario_saida %}{{ venda.horario_saida.strftime('%H:%M') }}{% elif form_values is defined %}{{ form_values.horario_saida }}{% endif %}">
+            </div>
+        </div>
+    </div>
+
+    <!-- Observações -->
+    <div class="form-section">
+        <div class="form-section-title">Observações</div>
+        <div class="form-section-body full">
+            <div class="form-group" style="margin-bottom:0;">
+                <textarea name="observacao" class="form-control" rows="3" placeholder="Observações sobre a venda...">{{ val('observacao') }}</textarea>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ações -->
+    <div style="display:flex; gap: 0.75rem;">
+        <button type="submit" class="btn btn-primary">💾 Salvar</button>
+        <a href="{% if is_edit %}/vendas/{{ venda.id }}{% else %}/vendas{% endif %}" class="btn btn-outline">Cancelar</a>
+    </div>
+
+</form>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const passeioSelect = document.getElementById('passeio_id');
+    const valorInput    = document.getElementById('valor_total');
+    const dispPerc      = document.getElementById('display_percentual');
+    const dispComissao  = document.getElementById('display_comissao');
+
+    function calcularComissao() {
+        const opt = passeioSelect.options[passeioSelect.selectedIndex];
+        const perc = parseFloat(opt?.dataset?.comissao || 0);
+        const valor = parseFloat(valorInput.value || 0);
+        const comissao = (valor * perc / 100).toFixed(2);
+        dispPerc.textContent = perc.toFixed(2).replace('.', ',') + '%';
+        dispComissao.textContent = 'R$ ' + comissao.replace('.', ',');
+    }
+
+    passeioSelect.addEventListener('change', calcularComissao);
+    valorInput.addEventListener('input', calcularComissao);
+    calcularComissao();
+</script>
+{% endblock %}

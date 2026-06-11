@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Favicon padrão -->
+      <link rel="icon" href="/static/icons/favicon.ico" sizes="any">
+
+      <!-- SVG moderno -->
+      <link rel="icon" type="image/svg+xml" href="/static/icons/favicon.svg">
+
+      <!-- PNG fallback -->
+      <link rel="icon" type="image/png" sizes="96x96" href="/static/icons/favicon-96x96.png">
+
+      <!-- Apple -->
+      <link rel="apple-touch-icon" sizes="180x180" href="/static/icons/apple-touch-icon.png">
+    <title>Login — Gestão de Passeios</title>
+    <link rel="stylesheet" href="/static/css/app.css">
+    <style>
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0D6EFD11 0%, #20C99711 100%);
+        }
+
+        .login-wrapper {
+            width: 100%;
+            max-width: 400px;
+            padding: 1.5rem;
+        }
+
+        .login-logo {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .login-logo .icon {
+            font-size: 2.5rem;
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .login-logo h1 {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text);
+            line-height: 1.3;
+        }
+
+        .login-logo p {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+        }
+
+        .login-card {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            box-shadow: var(--shadow-md);
+            padding: 2rem;
+        }
+
+        .login-card h2 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: var(--text);
+        }
+
+        .btn-login {
+            width: 100%;
+            justify-content: center;
+            padding: 0.65rem;
+            font-size: 15px;
+            margin-top: 0.5rem;
+        }
+
+        .login-footer {
+            text-align: center;
+            margin-top: 1.5rem;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-wrapper">
+
+        <div class="login-logo">
+            <span class="icon">⛵</span>
+            <h1>Gestão de Passeios</h1>
+            <p>Sistema interno do Hotel Aconchego Do Velho Chico</p>
+        </div>
+
+        <div class="login-card">
+            <h2>Acesso ao sistema</h2>
+
+            {% if erro %}
+            <div class="alert alert-danger">
+                {{ erro }}
+            </div>
+            {% endif %}
+
+            <form method="post" action="/login">
+
+                <div class="form-group">
+                    <label class="form-label" for="email">E-mail</label>
+                    <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        class="form-control"
+                        placeholder="seu@email.com"
+                        autocomplete="email"
+                        required
+                        autofocus
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="senha">Senha</label>
+                    <input
+                        type="password"
+                        id="senha"
+                        name="senha"
+                        class="form-control"
+                        placeholder="••••••••"
+                        autocomplete="current-password"
+                        required
+                    >
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-login">
+                    Entrar
+                </button>
+
+            </form>
+        </div>
+
+        <div class="login-footer">
+            &copy; {{ 2026 }} Hotel Aconchego Do Velho Chico — Todos os direitos reservados
+        </div>
+
+    </div>
+
+</body>
+</html>

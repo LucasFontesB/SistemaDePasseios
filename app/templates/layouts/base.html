@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Favicon padrão -->
+      <link rel="icon" href="/static/icons/favicon.ico" sizes="any">
+
+      <!-- SVG moderno -->
+      <link rel="icon" type="image/svg+xml" href="/static/icons/favicon.svg">
+
+      <!-- PNG fallback -->
+      <link rel="icon" type="image/png" sizes="96x96" href="/static/icons/favicon-96x96.png">
+
+      <!-- Apple -->
+      <link rel="apple-touch-icon" sizes="180x180" href="/static/icons/apple-touch-icon.png">
+    <title>{% block title %}Gestão de Passeios{% endblock %}</title>
+    <link rel="stylesheet" href="/static/css/app.css">
+    <link rel="stylesheet" href="/static/css/layout.css">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<div class="layout">
+
+    <!-- =====================================================================
+         Header
+         ===================================================================== -->
+    <header class="header">
+        <a href="/dashboard" class="header-brand">
+            <span class="icon">⛵</span>
+            Gestão de Passeios
+        </a>
+
+        <div class="header-right">
+            <div class="header-user">
+                <span>Olá,</span>
+                <strong>{{ usuario.nome.split()[0] }}</strong>
+                <span class="text-muted" style="font-size:11px;">({{ perfil_labels[usuario.perfil] }})</span>
+            </div>
+            <a href="/logout" class="header-logout">Sair</a>
+        </div>
+    </header>
+
+    <!-- =====================================================================
+         Sidebar
+         ===================================================================== -->
+    <nav class="sidebar">
+
+        <div class="sidebar-section">
+            <a href="/dashboard" class="sidebar-link {% if active == 'dashboard' %}active{% endif %}">
+                <span class="icon">🏠</span> Dashboard
+            </a>
+        </div>
+
+        <div class="sidebar-section">
+            <div class="sidebar-label">Vendas</div>
+            <a href="/vendas" class="sidebar-link {% if active == 'vendas' %}active{% endif %}">
+                <span class="icon">🎫</span> Listagem
+            </a>
+            <a href="/vendas/nova" class="sidebar-link {% if active == 'nova_venda' %}active{% endif %}">
+                <span class="icon">➕</span> Nova Venda
+            </a>
+        </div>
+
+        {% if usuario.perfil in ['ADMIN', 'GERENCIA'] %}
+        <div class="sidebar-section">
+            <div class="sidebar-label">Cadastros</div>
+            <a href="/passeios" class="sidebar-link {% if active == 'passeios' %}active{% endif %}">
+                <span class="icon">🗺️</span> Passeios
+            </a>
+            <a href="/tipos-passeio" class="sidebar-link {% if active == 'tipos_passeio' %}active{% endif %}">
+                <span class="icon">🏷️</span> Tipos de Passeio
+            </a>
+            <a href="/embarcacoes" class="sidebar-link {% if active == 'embarcacoes' %}active{% endif %}">
+                <span class="icon">🚢</span> Embarcações
+            </a>
+        </div>
+
+        <div class="sidebar-section">
+            <div class="sidebar-label">Relatórios</div>
+            <a href="/relatorios/vendas" class="sidebar-link {% if active == 'rel_vendas' %}active{% endif %}">
+                <span class="icon">📊</span> Vendas
+            </a>
+            <a href="/relatorios/comissoes" class="sidebar-link {% if active == 'rel_comissoes' %}active{% endif %}">
+                <span class="icon">💰</span> Comissões
+            </a>
+        </div>
+        {% endif %}
+
+        {% if usuario.perfil == 'ADMIN' %}
+        <div class="sidebar-section">
+            <div class="sidebar-label">Administração</div>
+            <a href="/usuarios" class="sidebar-link {% if active == 'usuarios' %}active{% endif %}">
+                <span class="icon">👥</span> Usuários
+            </a>
+        </div>
+        {% endif %}
+
+    </nav>
+
+    <!-- =====================================================================
+         Conteúdo
+         ===================================================================== -->
+    <main class="main">
+        {% block content %}{% endblock %}
+    </main>
+
+</div>
+
+{% block extra_js %}{% endblock %}
+</body>
+</html>

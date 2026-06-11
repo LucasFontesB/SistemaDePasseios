@@ -1,0 +1,372 @@
+    /* =============================================================================
+   Layout principal — layouts.css
+   ============================================================================= */
+
+/* Estrutura geral */
+.layout {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* =============================================================================
+   Header
+   ============================================================================= */
+
+.header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: var(--header-height);
+    background: var(--white);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 1.5rem;
+    z-index: 100;
+    box-shadow: var(--shadow);
+}
+
+.header-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--text);
+    text-decoration: none;
+}
+
+.header-brand .icon {
+    font-size: 1.4rem;
+}
+
+.header-brand:hover {
+    text-decoration: none;
+    color: var(--primary);
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.header-user {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+.header-user strong {
+    color: var(--text);
+    font-weight: 500;
+}
+
+.header-logout {
+    font-size: 13px;
+    color: var(--danger);
+    text-decoration: none;
+    padding: 0.3rem 0.75rem;
+    border: 1px solid var(--danger);
+    border-radius: var(--radius);
+    transition: background 0.15s, color 0.15s;
+}
+
+.header-logout:hover {
+    background: var(--danger);
+    color: var(--white);
+    text-decoration: none;
+}
+
+/* =============================================================================
+   Sidebar
+   ============================================================================= */
+
+.sidebar {
+    position: fixed;
+    top: var(--header-height);
+    left: 0;
+    bottom: 0;
+    width: var(--sidebar-width);
+    background: var(--white);
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    padding: 1rem 0;
+    z-index: 90;
+}
+
+.sidebar-section {
+    margin-bottom: 0.25rem;
+}
+
+.sidebar-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    padding: 0.75rem 1.25rem 0.25rem;
+}
+
+.sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.55rem 1.25rem;
+    font-size: 14px;
+    color: var(--text);
+    text-decoration: none;
+    border-radius: 0;
+    transition: background 0.12s, color 0.12s;
+    border-left: 3px solid transparent;
+}
+
+.sidebar-link:hover {
+    background: var(--bg);
+    color: var(--primary);
+    text-decoration: none;
+}
+
+.sidebar-link.active {
+    background: #EBF3FF;
+    color: var(--primary);
+    border-left-color: var(--primary);
+    font-weight: 500;
+}
+
+.sidebar-link .icon {
+    font-size: 1rem;
+    width: 1.25rem;
+    text-align: center;
+}
+
+.sidebar-sub {
+    padding-left: 2.75rem;
+}
+
+.sidebar-sub .sidebar-link {
+    font-size: 13px;
+    padding: 0.4rem 1.25rem 0.4rem 0;
+    border-left: none;
+}
+
+/* =============================================================================
+   Conteúdo principal
+   ============================================================================= */
+
+.main {
+    margin-left: var(--sidebar-width);
+    margin-top: var(--header-height);
+    padding: 1.75rem;
+    min-height: calc(100vh - var(--header-height));
+    background: var(--bg);
+}
+
+/* =============================================================================
+   Page header
+   ============================================================================= */
+
+.page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+}
+
+.page-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text);
+}
+
+.breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 0.25rem;
+}
+
+.breadcrumb a {
+    color: var(--text-muted);
+}
+
+.breadcrumb a:hover {
+    color: var(--primary);
+}
+
+.breadcrumb-sep {
+    color: var(--border);
+}
+
+/* =============================================================================
+   Dashboard — Cards de indicadores
+   ============================================================================= */
+
+.cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.stat-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem 1.5rem;
+    box-shadow: var(--shadow);
+}
+
+.stat-card-label {
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+}
+
+.stat-card-value {
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.1;
+}
+
+.stat-card-sub {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 0.3rem;
+}
+
+.stat-card.primary  { border-top: 3px solid var(--primary); }
+.stat-card.success  { border-top: 3px solid var(--success); }
+.stat-card.secondary { border-top: 3px solid var(--secondary); }
+.stat-card.warning  { border-top: 3px solid var(--warning); }
+
+/* =============================================================================
+   Dashboard — Tabelas
+   ============================================================================= */
+
+.section-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 1rem;
+}
+
+.table-wrapper {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.table th {
+    background: var(--bg);
+    padding: 0.65rem 1rem;
+    text-align: left;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+}
+
+.table td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+    vertical-align: middle;
+}
+
+.table tr:last-child td {
+    border-bottom: none;
+}
+
+.table tbody tr:hover {
+    background: #FAFBFC;
+}
+
+.table-empty {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-muted);
+    font-size: 14px;
+}
+
+/* =============================================================================
+   Badges de status
+   ============================================================================= */
+
+.badge {
+    display: inline-block;
+    padding: 0.2rem 0.6rem;
+    font-size: 11px;
+    font-weight: 600;
+    border-radius: 20px;
+    white-space: nowrap;
+}
+
+.badge-pendente             { background: #e9ecef; color: #495057; }
+.badge-aguardando_pagamento { background: #fff3cd; color: #856404; }
+.badge-confirmado           { background: #cfe2ff; color: #084298; }
+.badge-embarcado            { background: #d1f2eb; color: #0e6655; }
+.badge-finalizado           { background: #d1e7dd; color: #0a3622; }
+.badge-cancelado            { background: #f8d7da; color: #58151c; }
+.badge-reembolsado          { background: #ffe5d0; color: #7d3a00; }
+
+/* =============================================================================
+   Pendências
+   ============================================================================= */
+
+.pendencias-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.pendencia-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    box-shadow: var(--shadow);
+}
+
+.pendencia-icon {
+    font-size: 1.75rem;
+}
+
+.pendencia-info-label {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.pendencia-info-value {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text);
+}
+
+.pendencia-card.warning { border-left: 3px solid var(--warning); }
+.pendencia-card.danger  { border-left: 3px solid var(--danger); }

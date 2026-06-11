@@ -1,0 +1,243 @@
+{% extends "layouts/base.html" %}
+{% block title %}Venda {{ venda.numero_venda }} — Gestão de Passeios{% endblock %}
+
+{% block extra_css %}
+<style>
+.detail-section {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 1.25rem;
+    box-shadow: var(--shadow);
+}
+.detail-section-title {
+    padding: 0.85rem 1.25rem;
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+    border-radius: var(--radius) var(--radius) 0 0;
+}
+.detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1.25rem;
+    padding: 1.25rem;
+}
+.detail-item label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    display: block;
+    margin-bottom: 0.2rem;
+}
+.detail-item span {
+    font-size: 15px;
+    color: var(--text);
+    font-weight: 500;
+}
+.valor-destaque  { font-size: 22px !important; color: var(--success) !important; }
+.comissao-destaque { font-size: 22px !important; color: var(--primary) !important; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <div>
+        <div class="breadcrumb">
+            <a href="/dashboard">Dashboard</a>
+            <span class="breadcrumb-sep">›</span>
+            <a href="/vendas">Vendas</a>
+            <span class="breadcrumb-sep">›</span>
+            <span>{{ venda.numero_venda }}</span>
+        </div>
+        <h1 class="page-title" style="display:flex; align-items:center; gap:0.75rem;">
+            {{ venda.numero_venda }}
+            <span class="badge badge-{{ venda.status.lower() }}" style="font-size:13px;">{{ status_labels[venda.status] }}</span>
+        </h1>
+    </div>
+    <a href="/vendas/{{ venda.id }}/editar" class="btn btn-outline">✏️ Editar</a>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 320px; gap: 1.5rem; align-items: start;">
+
+    <div>
+
+        <!-- Contratante -->
+        <div class="detail-section">
+            <div class="detail-section-title">Contratante</div>
+            <div class="detail-grid">
+                <div class="detail-item"><label>Nome</label><span>{{ venda.contratante }}</span></div>
+                <div class="detail-item"><label>Telefone</label><span>{{ venda.telefone or "—" }}</span></div>
+                <div class="detail-item"><label>Adultos</label><span>{{ venda.adultos }}</span></div>
+                <div class="detail-item"><label>Crianças</label><span>{{ venda.criancas }}</span></div>
+            </div>
+        </div>
+
+        <!-- Passeio -->
+        <div class="detail-section">
+            <div class="detail-section-title">Passeio</div>
+            <div class="detail-grid">
+                <div class="detail-item"><label>Passeio</label><span>{{ venda.passeio.nome }}</span></div>
+                <div class="detail-item"><label>Tipo</label><span>{{ venda.tipo_passeio.nome }}</span></div>
+                <div class="detail-item"><label>Embarcação</label><span>{{ venda.embarcacao.nome if venda.embarcacao else "—" }}</span></div>
+                <div class="detail-item"><label>Data de Saída</label><span>{{ venda.data_saida.strftime("%d/%m/%Y") }}</span></div>
+                <div class="detail-item"><label>Horário</label><span>{{ venda.horario_saida.strftime("%H:%M") if venda.horario_saida else "—" }}</span></div>
+            </div>
+        </div>
+
+        <!-- Financeiro -->
+        <div class="detail-section">
+            <div class="detail-section-title">Financeiro</div>
+            <div class="detail-grid">
+                <div class="detail-item"><label>Valor Total</label><span class="valor-destaque">R$ {{ "%.2f"|format(venda.valor_total)|replace(".", ",") }}</span></div>
+                <div class="detail-item"><label>% Comissão</label><span>{{ "%.2f"|format(venda.percentual_comissao)|replace(".", ",") }}%</span></div>
+                <div class="detail-item"><label>Valor Comissão</label><span class="comissao-destaque">R$ {{ "%.2f"|format(venda.valor_comissao)|replace(".", ",") }}</span></div>
+            </div>
+        </div>
+
+        {% if venda.observacao %}
+        <div class="detail-section">
+            <div class="detail-section-title">Observações</div>
+            <div style="padding: 1.25rem;">
+                <p style="margin:0; line-height:1.6;">{{ venda.observacao }}</p>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Comprovantes -->
+        <div class="detail-section">
+            <div class="detail-section-title">Comprovantes</div>
+            <div style="padding: 1.25rem;">
+                {% if venda.comprovantes %}
+                    {% for c in venda.comprovantes %}
+                    <div style="display:flex; align-items:center; justify-content:space-between; padding: 0.5rem 0; border-bottom: 1px solid var(--border);">
+                        <div>
+                            <span style="font-size:14px;">📎 {{ c.nome_original }}</span>
+                            <span class="text-muted" style="font-size:12px; margin-left:0.5rem;">{{ (c.tamanho_bytes / 1024)|int }} KB</span>
+                        </div>
+                        <div style="display:flex; gap:0.5rem;">
+                            <a href="/comprovantes/{{ c.id }}" class="btn btn-outline btn-sm">⬇ Baixar</a>
+                            <form method="post" action="/comprovantes/{{ c.id }}/remover" style="margin:0;">
+                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Remover comprovante?')">✕</button>
+                            </form>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted" style="margin:0; font-size:14px;">Nenhum comprovante anexado.</p>
+                {% endif %}
+
+                {% if erro_upload is defined and erro_upload %}
+                <div class="alert alert-danger" style="margin-top:0.75rem;">{{ erro_upload }}</div>
+                {% endif %}
+
+                <form method="post" action="/vendas/{{ venda.id }}/comprovantes" enctype="multipart/form-data" style="margin-top: 1rem;">
+                    <div style="display:flex; gap:0.75rem; align-items:center;">
+                        <input type="file" name="arquivo" class="form-control" accept=".pdf,.jpg,.jpeg,.png" style="flex:1;">
+                        <button type="submit" class="btn btn-primary">📎 Anexar</button>
+                    </div>
+                    <div class="text-muted" style="font-size:12px; margin-top:0.3rem;">PDF, JPG, JPEG, PNG — máx. 10 MB</div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Histórico -->
+        <div class="detail-section">
+            <div class="detail-section-title">Histórico de Alterações</div>
+            <div style="padding: 0;">
+                {% if venda.historico %}
+                    <table class="table" style="margin:0;">
+                        <thead>
+                            <tr>
+                                <th>Data/Hora</th>
+                                <th>Campo</th>
+                                <th>De</th>
+                                <th>Para</th>
+                                <th>Usuário</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for h in venda.historico %}
+                            <tr>
+                                <td style="white-space:nowrap; font-size:12px;">{{ h.criado_em.strftime("%d/%m/%Y %H:%M") }}</td>
+                                <td>
+                                    {% if h.campo == "status" %}🔄
+                                    {% elif h.campo == "valor_total" %}💰
+                                    {% elif h.campo == "data_saida" %}📅
+                                    {% elif h.campo == "passeio_id" %}🗺️
+                                    {% else %}✏️
+                                    {% endif %}
+                                    {{ {"status": "Status", "valor_total": "Valor", "data_saida": "Data Saída", "passeio_id": "Passeio", "contratante": "Contratante"}.get(h.campo, h.campo) }}
+                                </td>
+                                <td class="text-muted" style="font-size:13px;">
+                                    {% if h.valor_anterior %}
+                                        {% if h.campo == "status" %}
+                                            <span class="badge badge-{{ h.valor_anterior.lower() }}">{{ status_labels.get(h.valor_anterior, h.valor_anterior) }}</span>
+                                        {% else %}
+                                            {{ h.valor_anterior }}
+                                        {% endif %}
+                                    {% else %}
+                                        <span class="text-muted">—</span>
+                                    {% endif %}
+                                </td>
+                                <td style="font-size:13px;">
+                                    {% if h.campo == "status" %}
+                                        <span class="badge badge-{{ h.valor_novo.lower() }}">{{ status_labels.get(h.valor_novo, h.valor_novo) }}</span>
+                                    {% else %}
+                                        {{ h.valor_novo or "—" }}
+                                    {% endif %}
+                                </td>
+                                <td class="text-muted" style="font-size:12px;">{{ h.usuario.nome.split()[0] }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <p class="text-muted" style="padding: 1.25rem; margin:0; font-size:14px;">Nenhuma alteração registrada.</p>
+                {% endif %}
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Painel lateral -->
+    <div>
+
+        <div class="detail-section">
+            <div class="detail-section-title">Alterar Status</div>
+            <div style="padding: 1.25rem;">
+                <form method="post" action="/vendas/{{ venda.id }}/status">
+                    <div class="form-group">
+                        <label class="form-label">Novo Status</label>
+                        <select name="status" class="form-control">
+                            {% for s in status_choices %}
+                            <option value="{{ s }}" {% if venda.status == s %}selected{% endif %}>{{ status_labels[s] }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Atualizar</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="detail-section">
+            <div class="detail-section-title">Informações</div>
+            <div style="padding: 1.25rem; display:flex; flex-direction:column; gap:0.75rem;">
+                <div class="detail-item"><label>Registrado por</label><span>{{ venda.usuario.nome }}</span></div>
+                <div class="detail-item"><label>Criado em</label><span>{{ venda.criado_em.strftime("%d/%m/%Y %H:%M") }}</span></div>
+                <div class="detail-item"><label>Atualizado em</label><span>{{ venda.atualizado_em.strftime("%d/%m/%Y %H:%M") }}</span></div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

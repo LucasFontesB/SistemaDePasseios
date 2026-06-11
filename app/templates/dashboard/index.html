@@ -1,0 +1,203 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}Dashboard — Gestão de Passeios{% endblock %}
+
+{% block extra_css %}
+<style>
+.comissao-recepcao {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    margin-bottom: 2rem;
+    overflow: hidden;
+}
+.comissao-recepcao-header {
+    background: linear-gradient(135deg, #0D6EFD, #20C997);
+    color: white;
+    padding: 1rem 1.5rem;
+    font-size: 15px;
+    font-weight: 600;
+}
+.comissao-recepcao-body {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+}
+.comissao-bloco {
+    padding: 1.25rem 1.5rem;
+}
+.comissao-bloco + .comissao-bloco {
+    border-left: 1px solid var(--border);
+}
+.comissao-bloco-titulo {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+}
+.comissao-bloco-valor {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--primary);
+    line-height: 1;
+    margin-bottom: 0.4rem;
+}
+.comissao-bloco-detalhe {
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.5;
+}
+.comissao-formula {
+    font-size: 12px;
+    color: var(--text-muted);
+    background: var(--bg);
+    padding: 0.5rem 1.5rem;
+    border-top: 1px solid var(--border);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <div>
+        <div class="breadcrumb"><span>Dashboard</span></div>
+        <h1 class="page-title">Dashboard</h1>
+    </div>
+    <a href="/vendas/nova" class="btn btn-primary">➕ Nova Venda</a>
+</div>
+
+{% if comissao_recepcao %}
+<div class="sidebar-label" style="padding: 0; margin-bottom: 0.75rem;">Suas Comissões — Mês Atual</div>
+<div class="comissao-recepcao">
+    <div class="comissao-recepcao-header">💰 Comissões do Mês Atual</div>
+    <div class="comissao-recepcao-body">
+        <div class="comissao-bloco">
+            <div class="comissao-bloco-titulo">Comissão Individual</div>
+            <div class="comissao-bloco-valor">R$ {{ "%.2f"|format(comissao_recepcao.individual_total)|replace(".", ",") }}</div>
+            <div class="comissao-bloco-detalhe">
+                Baseado nas suas {{ comissao_recepcao.individual_quantidade }} venda(s)<br>registradas no mês
+            </div>
+        </div>
+        <div class="comissao-bloco">
+            <div class="comissao-bloco-titulo">Comissão pelo Critério do Hotel</div>
+            <div class="comissao-bloco-valor">R$ {{ "%.2f"|format(comissao_recepcao.comissao_hotel)|replace(".", ",") }}</div>
+            <div class="comissao-bloco-detalhe">
+                Dividido igualmente entre<br>{{ comissao_recepcao.qtd_recepcionistas }} recepcionista(s) ativo(s)
+            </div>
+        </div>
+    </div>
+    <div class="comissao-formula">
+        Critério do hotel: Total geral
+        (R$ {{ "%.2f"|format(comissao_recepcao.total_geral)|replace(".", ",") }})
+        ÷ 2 = R$ {{ "%.2f"|format(comissao_recepcao.parte_recepcionistas)|replace(".", ",") }}
+        para recepcionistas ÷ {{ comissao_recepcao.qtd_recepcionistas }} =
+        <strong>R$ {{ "%.2f"|format(comissao_recepcao.comissao_hotel)|replace(".", ",") }} por recepcionista</strong>
+    </div>
+</div>
+{% endif %}
+
+<div class="sidebar-label" style="padding: 0; margin-bottom: 0.75rem;">Hoje</div>
+<div class="cards-grid" style="margin-bottom: 2rem;">
+    <div class="stat-card primary">
+        <div class="stat-card-label">Vendas</div>
+        <div class="stat-card-value">{{ hoje.quantidade }}</div>
+        <div class="stat-card-sub">realizadas hoje</div>
+    </div>
+    <div class="stat-card success">
+        <div class="stat-card-label">Receita</div>
+        <div class="stat-card-value">R$ {{ "%.2f"|format(hoje.valor_total)|replace(".", ",") }}</div>
+        <div class="stat-card-sub">valor vendido hoje</div>
+    </div>
+    <div class="stat-card secondary">
+        <div class="stat-card-label">Passageiros</div>
+        <div class="stat-card-value">{{ hoje.passageiros }}</div>
+        <div class="stat-card-sub">embarcando hoje</div>
+    </div>
+</div>
+
+<div class="sidebar-label" style="padding: 0; margin-bottom: 0.75rem;">Mês Atual</div>
+<div class="cards-grid" style="margin-bottom: 2rem;">
+    <div class="stat-card primary">
+        <div class="stat-card-label">Vendas</div>
+        <div class="stat-card-value">{{ mes.quantidade }}</div>
+        <div class="stat-card-sub">realizadas no mês</div>
+    </div>
+    <div class="stat-card success">
+        <div class="stat-card-label">Receita</div>
+        <div class="stat-card-value">R$ {{ "%.2f"|format(mes.valor_total)|replace(".", ",") }}</div>
+        <div class="stat-card-sub">valor vendido no mês</div>
+    </div>
+    <div class="stat-card warning">
+        <div class="stat-card-label">Comissões</div>
+        <div class="stat-card-value">R$ {{ "%.2f"|format(mes.valor_comissao)|replace(".", ",") }}</div>
+        <div class="stat-card-sub">geradas no mês</div>
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 340px; gap: 1.5rem; align-items: start;">
+
+    <div>
+        <div class="section-title">🚢 Próximos Embarques</div>
+        <div class="table-wrapper">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Horário</th>
+                        <th>Contratante</th>
+                        <th>Passeio</th>
+                        <th>Pessoas</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if proximos_embarques %}
+                        {% for venda in proximos_embarques %}
+                        <tr>
+                            <td>{{ venda.data_saida.strftime("%d/%m/%Y") }}</td>
+                            <td>{{ venda.horario_saida.strftime("%H:%M") if venda.horario_saida else "—" }}</td>
+                            <td><a href="/vendas/{{ venda.id }}">{{ venda.contratante }}</a></td>
+                            <td>{{ venda.passeio.nome }}</td>
+                            <td>{{ venda.adultos + venda.criancas }}</td>
+                            <td><span class="badge badge-{{ venda.status.lower() }}">{{ status_labels[venda.status] }}</span></td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr><td colspan="6" class="table-empty">Nenhum embarque próximo.</td></tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div>
+        <div class="section-title">⚠️ Pendências</div>
+        <div class="pendencias-grid" style="grid-template-columns: 1fr;">
+            <a href="/vendas?status=AGUARDANDO_PAGAMENTO" style="text-decoration:none;">
+                <div class="pendencia-card warning">
+                    <div class="pendencia-icon">💳</div>
+                    <div>
+                        <div class="pendencia-info-label">Aguardando pagamento</div>
+                        <div class="pendencia-info-value">{{ pendencias.aguardando_pagamento }}</div>
+                    </div>
+                </div>
+            </a>
+            <a href="/vendas" style="text-decoration:none;">
+                <div class="pendencia-card danger">
+                    <div class="pendencia-icon">📎</div>
+                    <div>
+                        <div class="pendencia-info-label">Sem comprovante</div>
+                        <div class="pendencia-info-value">{{ pendencias.sem_comprovante }}</div>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

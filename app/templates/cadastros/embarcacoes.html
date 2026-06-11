@@ -1,0 +1,113 @@
+{% extends "layouts/base.html" %}
+{% block title %}Embarcações — Gestão de Passeios{% endblock %}
+
+{% block extra_css %}
+<style>
+.cadastro-layout {
+    display: grid;
+    grid-template-columns: 1fr 360px;
+    gap: 1.5rem;
+    align-items: start;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <div>
+        <div class="breadcrumb">
+            <a href="/dashboard">Dashboard</a>
+            <span class="breadcrumb-sep">›</span>
+            <span>Embarcações</span>
+        </div>
+        <h1 class="page-title">Embarcações</h1>
+    </div>
+</div>
+
+<div class="cadastro-layout">
+
+    <!-- Listagem -->
+    <div class="table-wrapper">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>Capacidade</th>
+                    <th>Observação</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if embarcacoes %}
+                    {% for e in embarcacoes %}
+                    <tr>
+                        <td><strong>{{ e.nome }}</strong></td>
+                        <td>{{ e.capacidade }} pax</td>
+                        <td class="text-muted">{{ e.observacao or "—" }}</td>
+                        <td style="white-space:nowrap;">
+                            <a href="/embarcacoes/{{ e.id }}/editar" class="btn btn-outline btn-sm">Editar</a>
+                            <form method="post" action="/embarcacoes/{{ e.id }}/desativar" style="display:inline;">
+                                <button type="submit" class="btn btn-danger btn-sm"
+                                    onclick="return confirm('Desativar {{ e.nome }}?')">Desativar</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr><td colspan="4" class="table-empty">Nenhuma embarcação cadastrada.</td></tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Formulário -->
+    <div class="card">
+        <div class="card-body">
+            <h2 class="card-title">
+                {% if editando %}Editar Embarcação{% else %}Nova Embarcação{% endif %}
+            </h2>
+
+            {% if erros %}
+            <div class="alert alert-danger">
+                {% for e in erros %}<div>• {{ e }}</div>{% endfor %}
+            </div>
+            {% endif %}
+
+            <form method="post"
+                action="{% if editando %}/embarcacoes/{{ editando.id }}/editar{% else %}/embarcacoes{% endif %}">
+
+                <div class="form-group">
+                    <label class="form-label">Nome *</label>
+                    <input type="text" name="nome" class="form-control"
+                        value="{% if editando %}{{ editando.nome }}{% elif form_values is defined %}{{ form_values.nome }}{% endif %}"
+                        placeholder="Ex: Veleiro Maresia" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Capacidade (passageiros) *</label>
+                    <input type="number" name="capacidade" class="form-control"
+                        value="{% if editando %}{{ editando.capacidade }}{% elif form_values is defined %}{{ form_values.capacidade }}{% endif %}"
+                        min="1" placeholder="Ex: 20" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Observação</label>
+                    <textarea name="observacao" class="form-control" rows="2"
+                        placeholder="Observações opcionais...">{% if editando %}{{ editando.observacao or "" }}{% elif form_values is defined %}{{ form_values.observacao }}{% endif %}</textarea>
+                </div>
+
+                <div style="display:flex; gap:0.5rem;">
+                    <button type="submit" class="btn btn-primary">💾 Salvar</button>
+                    {% if editando %}
+                    <a href="/embarcacoes" class="btn btn-outline">Cancelar</a>
+                    {% endif %}
+                </div>
+
+            </form>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

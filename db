@@ -1,0 +1,160 @@
+-- O login inicial será admin@hotel.com com senha admin123.
+
+-- =============================================================================
+-- Sistema de Gestão de Passeios
+-- Script de criação do banco de dados
+-- =============================================================================
+
+-- Extensão para geração de UUIDs
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+
+-- =============================================================================
+-- Tabela: usuarios
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS usuarios (
+    id              UUID            PRIMARY KEY DEFAULT gen_random_uuid(),
+    nome            VARCHAR(150)    NOT NULL,
+    email           VARCHAR(150)    NOT NULL UNIQUE,
+    senha_hash      VARCHAR(255)    NOT NULL,
+    perfil          VARCHAR(30)     NOT NULL CHECK (perfil IN ('ADMIN', 'GERENCIA', 'RECEPCAO')),
+    criado_em       TIMESTAMP       NOT NULL DEFAULT NOW(),
+    atualizado_em   TIMESTAMP       NOT NULL DEFAULT NOW(),
+    deletado_em     TIMESTAMP       NULL
+);
+
+-- =============================================================================
+-- Tabela: passeios
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS passeios (
+    id                  UUID            PRIMARY KEY DEFAULT gen_random_uuid(),
+    nome                VARCHAR(150)    NOT NULL,
+    descricao           TEXT            NULL,
+    percentual_comissao NUMERIC(5, 2)   NOT NULL,
+    criado_em           TIMESTAMP       NOT NULL DEFAULT NOW(),
+    atualizado_em       TIMESTAMP       NOT NULL DEFAULT NOW(),
+    deletado_em         TIMESTAMP       NULL
+);
+
+-- =============================================================================
+-- Tabela: tipos_passeio
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS tipos_passeio (
+    id              UUID            PRIMARY KEY DEFAULT gen_random_uuid(),
+    nome            VARCHAR(100)    NOT NULL,
+    criado_em       TIMESTAMP       NOT NULL DEFAULT NOW(),
+    atualizado_em   TIMESTAMP       NOT NULL DEFAULT NOW(),
+    deletado_em     TIMESTAMP       NULL
+);
+
+-- =============================================================================
+-- Tabela: embarcacoes
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS embarcacoes (
+    id              UUID            PRIMARY KEY DEFAULT gen_random_uuid(),
+    nome            VARCHAR(150)    NOT NULL,
+    capacidade      INTEGER         NOT NULL,
+    observacao      TEXT            NULL,
+    criado_em       TIMESTAMP       NOT NULL DEFAULT NOW(),
+    atualizado_em   TIMESTAMP       NOT NULL DEFAULT NOW(),
+    deletado_em     TIMESTAMP       NULL
+);
+
+-- =============================================================================
+-- Tabela: vendas
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS vendas (
+    id                  UUID            PRIMARY KEY DEFAULT gen_random_uuid(),
+    numero_venda        VARCHAR(30)     NOT NULL UNIQUE,
+    contratante         VARCHAR(200)    NOT NULL,
+    telefone            VARCHAR(30)     NULL,
+    adultos             INTEGER         NOT NULL DEFAULT 1,
+    criancas            INTEGER         NOT NULL DEFAULT 0,
+    passeio_id          UUID            NOT NULL REFERENCES passeios(id),
+    tipo_passeio_id     UUID            NOT NULL REFERENCES tipos_passeio(id),
+    embarcacao_id       UUID            NULL     REFERENCES embarcacoes(id),
+    valor_total         NUMERIC(10, 2)  NOT NULL,
+    percentual_comissao NUMERIC(5, 2)   NOT NULL,
+    valor_comissao      NUMERIC(10, 2)  NOT NULL,
+    data_saida          DATE            NOT NULL,
+    horario_saida       TIME            NULL,
+    status              VARCHAR(30)     NOT NULL DEFAULT 'PENDENTE'
+                            CHECK (status IN (
+                                'PENDENTE',
+                                'AGUARDANDO_PAGAMENTO',
+                                'CONFIRMADO',
+                                'EMBARCADO',
+                                'FINALIZADO',
+                                'CANCELADO',
+                                'REEMBOLSADO'
+                            )),
+    observacao          TEXT            NULL,
+    usuario_id          UUID            NOT NULL REFERENCES usuarios(id),
+    criado_em           TIMESTAMP       NOT NULL DEFAULT NOW(),
+    atualizado_em       TIMESTAMP       NOT NULL DEFAULT NOW()
+);
+
+-- Índices da tabela vendas
+CREATE INDEX IF NOT EXISTS idx_vendas_numero        ON vendas (numero_venda);
+CREATE INDEX IF NOT EXISTS idx_vendas_contratante   ON vendas (contratante);
+CREATE INDEX IF NOT EXISTS idx_vendas_telefone      ON vendas (telefone);
+CREATE INDEX IF NOT EXISTS idx_vendas_status        ON vendas (status);
+CREATE INDEX IF NOT EXISTS idx_vendas_data_saida    ON vendas (data_saida);
+CREATE INDEX IF NOT EXISTS idx_vendas_passeio       ON vendas (passeio_id);
+CREATE INDEX IF NOT EXISTS idx_vendas_usuario       ON vendas (usuario_id);
+CREATE INDEX IF NOT EXISTS idx_vendas_criado_em     ON vendas (criado_em);
+
+-- =============================================================================
+-- Tabela: comprovantes
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS comprovantes (
+    id              UUID            PRIMARY KEY DEFAULT gen_random_uuid(),
+    venda_id        UUID            NOT NULL REFERENCES vendas(id),
+    nome_original   VARCHAR(255)    NOT NULL,
+    nome_arquivo    VARCHAR(255)    NOT NULL,
+    caminho         VARCHAR(500)    NOT NULL,
+    tipo_arquivo    VARCHAR(50)     NOT NULL,
+    tamanho_bytes   BIGINT          NOT NULL,
+    enviado_em      TIMESTAMP       NOT NULL DEFAULT NOW()
+);
+
+-- Índice da tabela comprovantes
+CREATE INDEX IF NOT EXISTS idx_comprovantes_venda ON comprovantes (venda_id);
+
+-- =============================================================================
+-- Seed: dados iniciais
+-- =============================================================================
+
+-- Usuário administrador padrão
+-- Senha: admin123 (hash bcrypt)
+INSERT INTO usuarios (nome, email, senha_hash, perfil)
+VALUES (
+    'Administrador',
+    'admin@hotel.com',
+    '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj4J/HS.iK2S',
+    'ADMIN'
+)
+ON CONFLICT (email) DO NOTHING;
+
+-- Tipos de passeio padrão
+INSERT INTO tipos_passeio (nome) VALUES ('Compartilhado') ON CONFLICT DO NOTHING;
+INSERT INTO tipos_passeio (nome) VALUES ('Privativo')     ON CONFLICT DO NOTHING;
+INSERT INTO tipos_passeio (nome) VALUES ('Catamarã')      ON CONFLICT DO NOTHING;
+INSERT INTO tipos_passeio (nome) VALUES ('Lancha')        ON CONFLICT DO NOTHING;
+
+-- =============================================================================
+-- V1.1 — Tabela de histórico de alterações das vendas
+-- Execute no banco de dados passeios
+-- =============================================================================
+
+CREATE TABLE IF NOT EXISTS venda_historico (
+    id              UUID            PRIMARY KEY DEFAULT gen_random_uuid(),
+    venda_id        UUID            NOT NULL REFERENCES vendas(id),
+    usuario_id      UUID            NOT NULL REFERENCES usuarios(id),
+    campo           VARCHAR(50)     NOT NULL,
+    valor_anterior  TEXT            NULL,
+    valor_novo      TEXT            NULL,
+    criado_em       TIMESTAMP       NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_venda_historico_venda    ON venda_historico (venda_id);
+CREATE INDEX IF NOT EXISTS idx_venda_historico_criado   ON venda_historico (criado_em);

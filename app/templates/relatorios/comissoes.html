@@ -1,0 +1,150 @@
+{% extends "layouts/base.html" %}
+{% block title %}Relatório de Comissões — Gestão de Passeios{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <div>
+        <div class="breadcrumb">
+            <a href="/dashboard">Dashboard</a>
+            <span class="breadcrumb-sep">›</span>
+            <span>Relatório de Comissões</span>
+        </div>
+        <h1 class="page-title">Relatório de Comissões</h1>
+    </div>
+</div>
+
+<!-- Filtros -->
+<div class="card" style="margin-bottom: 1.25rem;">
+    <div class="card-body" style="padding: 1.25rem;">
+        <form method="get" action="/relatorios/comissoes">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 0.75rem; align-items: end;">
+                <div class="form-group" style="margin-bottom:0;">
+                    <label class="form-label">Data Inicial</label>
+                    <input type="date" name="data_inicial" class="form-control" value="{{ filtros.data_inicial }}">
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                    <label class="form-label">Data Final</label>
+                    <input type="date" name="data_final" class="form-control" value="{{ filtros.data_final }}">
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                    <label class="form-label">Recepcionista</label>
+                    <select name="usuario_id" class="form-control">
+                        <option value="">Todos</option>
+                        {% for u in usuarios %}
+                        <option value="{{ u.id }}" {% if filtros.usuario_id == u.id|string %}selected{% endif %}>{{ u.nome }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div style="display:flex; gap:0.5rem;">
+                    <button type="submit" class="btn btn-primary w-100">Filtrar</button>
+                    <a href="/relatorios/comissoes" class="btn btn-outline w-100">Limpar</a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Totais gerais -->
+<div class="cards-grid" style="margin-bottom: 1.5rem;">
+    <div class="stat-card primary">
+        <div class="stat-card-label">Total de Vendas</div>
+        <div class="stat-card-value">{{ total_vendas }}</div>
+        <div class="stat-card-sub">no período</div>
+    </div>
+    <div class="stat-card success">
+        <div class="stat-card-label">Total Vendido</div>
+        <div class="stat-card-value">R$ {{ "%.2f"|format(total_vendido)|replace(".", ",") }}</div>
+        <div class="stat-card-sub">excluindo cancelados</div>
+    </div>
+    <div class="stat-card warning">
+        <div class="stat-card-label">Total Comissões</div>
+        <div class="stat-card-value">R$ {{ "%.2f"|format(total_comissao)|replace(".", ",") }}</div>
+        <div class="stat-card-sub">a pagar no período</div>
+    </div>
+</div>
+
+<!-- Tabela por recepcionista -->
+<div class="section-title">Por Recepcionista — Comissão Individual</div>
+<div class="table-wrapper" style="margin-bottom: 1.5rem;">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Recepcionista</th>
+                    <th>Qtd. Vendas</th>
+                    <th>Total Vendido</th>
+                    <th>Total Comissão</th>
+                    <th>% do Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if comissoes %}
+                    {% for c in comissoes %}
+                    <tr>
+                        <td><strong>{{ c.nome }}</strong></td>
+                        <td>{{ c.quantidade_vendas }}</td>
+                        <td>R$ {{ "%.2f"|format(c.total_vendido)|replace(".", ",") }}</td>
+                        <td>
+                            <strong style="color: var(--primary);">
+                                R$ {{ "%.2f"|format(c.total_comissao)|replace(".", ",") }}
+                            </strong>
+                        </td>
+                        <td>
+                            {% if total_comissao > 0 %}
+                                {{ "%.1f"|format((c.total_comissao|float / total_comissao * 100)) }}%
+                            {% else %}
+                                —
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+
+                    <!-- Linha de totais -->
+                    <tr style="background: var(--bg); font-weight: 600;">
+                        <td>Total</td>
+                        <td>{{ total_vendas }}</td>
+                        <td>R$ {{ "%.2f"|format(total_vendido)|replace(".", ",") }}</td>
+                        <td style="color: var(--primary);">R$ {{ "%.2f"|format(total_comissao)|replace(".", ",") }}</td>
+                        <td>100%</td>
+                    </tr>
+                {% else %}
+                    <tr><td colspan="5" class="table-empty">Nenhuma comissão encontrada no período.</td></tr>
+                {% endif %}
+            </tbody>
+        </table>
+</div>
+
+<!-- Critério do hotel -->
+{% if total_comissao > 0 %}
+{% set qtd_recepcionistas = qtd_recepcionistas_ativos %}
+<div class="section-title">Critério do Hotel — Divisão Igualitária</div>
+<div class="card" style="margin-bottom: 1.5rem;">
+    <div class="card-body">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1.25rem; margin-bottom: 1.25rem;">
+            <div>
+                <div style="font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.05em; color:var(--text-muted); margin-bottom:.4rem;">Total Geral de Comissões</div>
+                <div style="font-size:22px; font-weight:700; color:var(--text);">R$ {{ "%.2f"|format(total_comissao)|replace(".", ",") }}</div>
+            </div>
+            <div>
+                <div style="font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.05em; color:var(--text-muted); margin-bottom:.4rem;">Parte dos Recepcionistas (÷ 2)</div>
+                <div style="font-size:22px; font-weight:700; color:var(--text);">R$ {{ "%.2f"|format(total_comissao / 2)|replace(".", ",") }}</div>
+            </div>
+            <div>
+                <div style="font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.05em; color:var(--text-muted); margin-bottom:.4rem;">Recepcionistas Ativos</div>
+                <div style="font-size:22px; font-weight:700; color:var(--text);">{{ qtd_recepcionistas_ativos }}</div>
+            </div>
+            <div>
+                <div style="font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.05em; color:var(--text-muted); margin-bottom:.4rem;">Comissão por Recepcionista</div>
+                <div style="font-size:28px; font-weight:700; color:var(--primary);">
+                    R$ {{ "%.2f"|format(total_comissao / 2 / qtd_recepcionistas_ativos)|replace(".", ",") }}
+                </div>
+            </div>
+        </div>
+        <div style="font-size:12px; color:var(--text-muted); background:var(--bg); padding:.75rem 1rem; border-radius:var(--radius);">
+            Fórmula: R$ {{ "%.2f"|format(total_comissao)|replace(".", ",") }} ÷ 2 = R$ {{ "%.2f"|format(total_comissao / 2)|replace(".", ",") }} para recepcionistas ÷ {{ qtd_recepcionistas_ativos }} recepcionista(s) = <strong>R$ {{ "%.2f"|format(total_comissao / 2 / qtd_recepcionistas_ativos)|replace(".", ",") }} cada</strong>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}

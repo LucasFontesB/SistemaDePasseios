@@ -1,0 +1,108 @@
+{% extends "layouts/base.html" %}
+{% block title %}Vendas — Gestão de Passeios{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <div>
+        <div class="breadcrumb">
+            <a href="/dashboard">Dashboard</a>
+            <span class="breadcrumb-sep">›</span>
+            <span>Vendas</span>
+        </div>
+        <h1 class="page-title">Vendas</h1>
+    </div>
+    <a href="/vendas/nova" class="btn btn-primary">➕ Nova Venda</a>
+</div>
+
+<!-- Filtros -->
+<div class="card" style="margin-bottom: 1.25rem;">
+    <div class="card-body" style="padding: 1.25rem;">
+        <form method="get" action="/vendas">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 0.75rem; align-items: end;">
+                <div class="form-group" style="margin-bottom:0;">
+                    <label class="form-label">Contratante</label>
+                    <input type="text" name="contratante" class="form-control" value="{{ filtros.contratante }}" placeholder="Nome...">
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                    <label class="form-label">Telefone</label>
+                    <input type="text" name="telefone" class="form-control" value="{{ filtros.telefone }}" placeholder="Telefone...">
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                    <label class="form-label">Passeio</label>
+                    <select name="passeio_id" class="form-control">
+                        <option value="">Todos</option>
+                        {% for p in passeios %}
+                        <option value="{{ p.id }}" {% if filtros.passeio_id == p.id|string %}selected{% endif %}>{{ p.nome }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                    <label class="form-label">Status</label>
+                    <select name="status" class="form-control">
+                        <option value="">Todos</option>
+                        {% for s in status_labels %}
+                        <option value="{{ s }}" {% if filtros.status == s %}selected{% endif %}>{{ status_labels[s] }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                    <label class="form-label">Data Inicial</label>
+                    <input type="date" name="data_inicial" class="form-control" value="{{ filtros.data_inicial }}">
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                    <label class="form-label">Data Final</label>
+                    <input type="date" name="data_final" class="form-control" value="{{ filtros.data_final }}">
+                </div>
+                <div style="display:flex; gap: 0.5rem;">
+                    <button type="submit" class="btn btn-primary w-100">Filtrar</button>
+                    <a href="/vendas" class="btn btn-outline w-100">Limpar</a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Tabela -->
+<div class="table-wrapper">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Número</th>
+                <th>Contratante</th>
+                <th>Passeio</th>
+                <th>Data Saída</th>
+                <th>Valor</th>
+                <th>Comissão</th>
+                <th>Status</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if vendas %}
+                {% for v in vendas %}
+                <tr>
+                    <td><code style="font-size:12px;">{{ v.numero_venda }}</code></td>
+                    <td>
+                        <strong>{{ v.contratante }}</strong>
+                        {% if v.telefone %}<br><span class="text-muted" style="font-size:12px;">{{ v.telefone }}</span>{% endif %}
+                    </td>
+                    <td>{{ v.passeio.nome }}</td>
+                    <td>{{ v.data_saida.strftime("%d/%m/%Y") }}{% if v.horario_saida %}<br><span class="text-muted" style="font-size:12px;">{{ v.horario_saida.strftime("%H:%M") }}</span>{% endif %}</td>
+                    <td>R$ {{ "%.2f"|format(v.valor_total)|replace(".", ",") }}</td>
+                    <td>R$ {{ "%.2f"|format(v.valor_comissao)|replace(".", ",") }}</td>
+                    <td><span class="badge badge-{{ v.status.lower() }}">{{ status_labels[v.status] }}</span></td>
+                    <td style="white-space:nowrap;">
+                        <a href="/vendas/{{ v.id }}" class="btn btn-outline btn-sm">Ver</a>
+                        <a href="/vendas/{{ v.id }}/editar" class="btn btn-outline btn-sm">Editar</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr><td colspan="8" class="table-empty">Nenhuma venda encontrada.</td></tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}
