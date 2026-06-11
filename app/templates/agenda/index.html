@@ -1,0 +1,257 @@
+{% extends "layouts/base.html" %}
+{% block title %}Agenda de Embarques — Gestão de Passeios{% endblock %}
+
+{% block extra_css %}
+<style>
+.agenda-nav {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+.agenda-nav-btn {
+    padding: 0.5rem 1.25rem;
+    border-radius: var(--radius);
+    font-size: 14px;
+    font-weight: 500;
+    border: 1px solid var(--border);
+    background: var(--white);
+    color: var(--text);
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+.agenda-nav-btn:hover { background: var(--bg); text-decoration: none; }
+.agenda-nav-btn.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+.agenda-nav-sep {
+    color: var(--border);
+    font-size: 18px;
+}
+.agenda-data-form {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.embarque-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    margin-bottom: 0.75rem;
+    overflow: hidden;
+    transition: box-shadow 0.15s;
+}
+.embarque-card:hover { box-shadow: var(--shadow-md); }
+.embarque-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.85rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+}
+.embarque-horario {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--primary);
+    min-width: 60px;
+}
+.embarque-passeio {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    flex: 1;
+    margin: 0 1rem;
+}
+.embarque-card-body {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+}
+.embarque-info label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    display: block;
+    margin-bottom: 0.2rem;
+}
+.embarque-info span {
+    font-size: 14px;
+    color: var(--text);
+    font-weight: 500;
+}
+.embarque-card-footer {
+    padding: 0.75rem 1.25rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+.alerta-sem-comprovante {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 12px;
+    color: var(--warning);
+    background: #fff3cd;
+    border: 1px solid #ffe69c;
+    border-radius: 20px;
+    padding: 0.2rem 0.6rem;
+    font-weight: 600;
+}
+.data-titulo {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 0.25rem;
+}
+.data-subtitulo {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 1.25rem;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <div>
+        <div class="breadcrumb">
+            <a href="/dashboard">Dashboard</a>
+            <span class="breadcrumb-sep">›</span>
+            <span>Agenda de Embarques</span>
+        </div>
+        <h1 class="page-title">Agenda de Embarques</h1>
+    </div>
+    <a href="/vendas/nova" class="btn btn-primary">➕ Nova Venda</a>
+</div>
+
+<!-- Navegação de datas -->
+<div class="agenda-nav">
+    <a href="/agenda?periodo=hoje"
+        class="agenda-nav-btn {% if data_selecionada == hoje %}active{% endif %}">
+        📅 Hoje
+    </a>
+    <a href="/agenda?periodo=amanha"
+        class="agenda-nav-btn {% if data_selecionada == amanha and data_selecionada != hoje %}active{% endif %}">
+        📅 Amanhã
+    </a>
+    <span class="agenda-nav-sep">|</span>
+    <form method="get" action="/agenda" class="agenda-data-form">
+        <input type="date" name="data" class="form-control" style="width:auto;"
+            value="{{ data_selecionada.isoformat() }}"
+            onchange="this.form.submit()">
+    </form>
+</div>
+
+<!-- Título da data -->
+<div class="data-titulo">
+    {% if data_selecionada == hoje %}
+        Hoje — {{ hoje.strftime("%d/%m/%Y") }}
+    {% elif data_selecionada == amanha %}
+        Amanhã — {{ amanha.strftime("%d/%m/%Y") }}
+    {% else %}
+        {{ data_selecionada.strftime("%d/%m/%Y") }}
+    {% endif %}
+</div>
+
+<!-- Totais do dia -->
+{% if embarques %}
+<div class="cards-grid" style="margin-bottom: 1.5rem;">
+    <div class="stat-card primary">
+        <div class="stat-card-label">Embarques</div>
+        <div class="stat-card-value">{{ totais.quantidade }}</div>
+        <div class="stat-card-sub">no dia</div>
+    </div>
+    <div class="stat-card secondary">
+        <div class="stat-card-label">Passageiros</div>
+        <div class="stat-card-value">{{ totais.passageiros }}</div>
+        <div class="stat-card-sub">total do dia</div>
+    </div>
+    <div class="stat-card success">
+        <div class="stat-card-label">Receita</div>
+        <div class="stat-card-value">R$ {{ "%.2f"|format(totais.valor_total)|replace(".", ",") }}</div>
+        <div class="stat-card-sub">valor total do dia</div>
+    </div>
+    {% if totais.sem_comprovante > 0 %}
+    <div class="stat-card warning">
+        <div class="stat-card-label">Sem Comprovante</div>
+        <div class="stat-card-value">{{ totais.sem_comprovante }}</div>
+        <div class="stat-card-sub">pendente de anexo</div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Cards de embarques -->
+{% for v in embarques %}
+<div class="embarque-card">
+    <div class="embarque-card-header">
+        <div class="embarque-horario">
+            {{ v.horario_saida.strftime("%H:%M") if v.horario_saida else "—:—" }}
+        </div>
+        <div class="embarque-passeio">{{ v.passeio.nome }}</div>
+        <div style="display:flex; align-items:center; gap:0.75rem;">
+            {% if not v.comprovantes %}
+            <span class="alerta-sem-comprovante">⚠ Sem comprovante</span>
+            {% endif %}
+            <span class="badge badge-{{ v.status.lower() }}">{{ status_labels[v.status] }}</span>
+        </div>
+    </div>
+    <div class="embarque-card-body">
+        <div class="embarque-info">
+            <label>Contratante</label>
+            <span>{{ v.contratante }}</span>
+        </div>
+        <div class="embarque-info">
+            <label>Telefone</label>
+            <span>{{ v.telefone or "—" }}</span>
+        </div>
+        <div class="embarque-info">
+            <label>Tipo</label>
+            <span>{{ v.tipo_passeio.nome }}</span>
+        </div>
+        <div class="embarque-info">
+            <label>Embarcação</label>
+            <span>{{ v.embarcacao.nome if v.embarcacao else "—" }}</span>
+        </div>
+        <div class="embarque-info">
+            <label>Passageiros</label>
+            <span>{{ v.adultos + v.criancas }} ({{ v.adultos }} adulto(s), {{ v.criancas }} criança(s))</span>
+        </div>
+        <div class="embarque-info">
+            <label>Valor</label>
+            <span>R$ {{ "%.2f"|format(v.valor_total)|replace(".", ",") }}</span>
+        </div>
+    </div>
+    <div class="embarque-card-footer">
+        <div style="font-size:12px; color:var(--text-muted);">
+            Nº {{ v.numero_venda }} — Registrado por {{ v.usuario.nome.split()[0] }}
+        </div>
+        <div style="display:flex; gap:0.5rem;">
+            <a href="/vendas/{{ v.id }}" class="btn btn-outline btn-sm">Ver detalhes</a>
+            <a href="/vendas/{{ v.id }}/editar" class="btn btn-outline btn-sm">Editar</a>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+{% else %}
+<div style="text-align:center; padding: 3rem 1rem; color: var(--text-muted);">
+    <div style="font-size: 3rem; margin-bottom: 1rem;">⛵</div>
+    <div style="font-size: 16px; font-weight: 600; margin-bottom: 0.5rem;">Nenhum embarque para este dia</div>
+    <div style="font-size: 14px;">Nenhuma venda confirmada para {{ data_selecionada.strftime("%d/%m/%Y") }}.</div>
+    <a href="/vendas/nova" class="btn btn-primary" style="margin-top: 1.25rem;">➕ Nova Venda</a>
+</div>
+{% endif %}
+
+{% endblock %}

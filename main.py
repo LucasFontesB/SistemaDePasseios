@@ -14,6 +14,7 @@ from app.controllers.receipt_controller import router as receipt_router
 from app.controllers.cadastro_controller import router as cadastro_router
 from app.controllers.user_controller import router as user_router
 from app.controllers.report_controller import router as report_router
+from app.controllers.agenda_controller import router as agenda_router
 
 # =============================================================================
 # Aplicação
@@ -53,6 +54,7 @@ app.include_router(receipt_router)
 app.include_router(cadastro_router)
 app.include_router(user_router)
 app.include_router(report_router)
+app.include_router(agenda_router)
 
 
 # Redireciona raiz para login
