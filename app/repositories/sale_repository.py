@@ -19,6 +19,7 @@ class SaleRepository:
         self,
         contratante: str = None,
         telefone: str = None,
+        numero_venda: str = None,
         passeio_id: str = None,
         status: str = None,
         data_inicial: date = None,
@@ -38,6 +39,8 @@ class SaleRepository:
             query = query.filter(Venda.contratante.ilike(f"%{contratante}%"))
         if telefone:
             query = query.filter(Venda.telefone.ilike(f"%{telefone}%"))
+        if numero_venda:
+            query = query.filter(Venda.numero_venda.ilike(f"%{numero_venda}%"))
         if passeio_id:
             query = query.filter(Venda.passeio_id == passeio_id)
         if status:

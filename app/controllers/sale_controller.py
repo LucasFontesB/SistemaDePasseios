@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import uuid
 from datetime import date
 
@@ -7,6 +9,8 @@ from sqlalchemy.orm import Session
 
 from app.core.security import get_current_user
 from app.core.templates import templates
+from app.core.flash import set_flash
+from app.core.constants import STATUS_CHOICES
 from app.database.connection import get_db
 from app.repositories.user_repository import UserRepository
 from app.services.sale_service import SaleService
@@ -31,6 +35,7 @@ async def vendas_list(
     db: Session = Depends(get_db),
     contratante: str = None,
     telefone: str = None,
+    numero_venda: str = None,
     passeio_id: str = None,
     status: str = None,
     data_inicial: str = None,
@@ -46,6 +51,7 @@ async def vendas_list(
     vendas = service.list(
         contratante=contratante,
         telefone=telefone,
+        numero_venda=numero_venda,
         passeio_id=passeio_id,
         status=status,
         data_inicial=date.fromisoformat(data_inicial) if data_inicial else None,
@@ -63,6 +69,7 @@ async def vendas_list(
         "filtros": {
             "contratante": contratante or "",
             "telefone": telefone or "",
+            "numero_venda": numero_venda or "",
             "passeio_id": passeio_id or "",
             "status": status or "",
             "data_inicial": data_inicial or "",
@@ -117,7 +124,9 @@ async def venda_create(request: Request, db: Session = Depends(get_db)):
             **form_data,
         })
 
-    return RedirectResponse(url=f"/vendas/{venda.id}", status_code=302)
+    response = RedirectResponse(url=f"/vendas/{venda.id}", status_code=302)
+    set_flash(response, "Venda cadastrada com sucesso!")
+    return response
 
 
 # =============================================================================
@@ -136,7 +145,6 @@ async def venda_detalhes(request: Request, venda_id: str, db: Session = Depends(
     if not venda:
         return RedirectResponse(url="/vendas")
 
-    from app.core.constants import STATUS_CHOICES
     return templates.TemplateResponse("vendas/detalhes.html", {
         "request": request,
         "usuario": usuario,
@@ -198,7 +206,9 @@ async def venda_update(request: Request, venda_id: str, db: Session = Depends(ge
             **form_data,
         })
 
-    return RedirectResponse(url=f"/vendas/{venda_id}", status_code=302)
+    response = RedirectResponse(url=f"/vendas/{venda_id}", status_code=302)
+    set_flash(response, "Venda atualizada com sucesso!")
+    return response
 
 
 # =============================================================================
@@ -214,4 +224,7 @@ async def venda_status(request: Request, venda_id: str, db: Session = Depends(ge
     form = dict(await request.form())
     status = form.get("status", "")
     SaleService(db).update_status(uuid.UUID(venda_id), status, uuid.UUID(session["user_id"]))
-    return RedirectResponse(url=f"/vendas/{venda_id}", status_code=302)
+
+    response = RedirectResponse(url=f"/vendas/{venda_id}", status_code=302)
+    set_flash(response, "Status atualizado com sucesso!")
+    return response

@@ -1,0 +1,97 @@
+{% extends "layouts/base.html" %}
+{% block title %}Meu Perfil — Gestão de Passeios{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <div>
+        <div class="breadcrumb">
+            <a href="/dashboard">Dashboard</a>
+            <span class="breadcrumb-sep">›</span>
+            <span>Meu Perfil</span>
+        </div>
+        <h1 class="page-title">Meu Perfil</h1>
+    </div>
+</div>
+
+<div style="max-width: 520px;">
+
+    <div class="card">
+        <div class="card-body">
+
+            {% if erros %}
+            <div class="alert alert-danger">
+                {% for e in erros %}<div>• {{ e }}</div>{% endfor %}
+            </div>
+            {% endif %}
+
+            <form method="post" action="/perfil">
+
+                <!-- Informações básicas -->
+                <div style="margin-bottom: 1.5rem;">
+                    <div style="font-size: 13px; font-weight: 600; text-transform: uppercase;
+                                letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 1rem;">
+                        Informações
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Nome *</label>
+                        <input type="text" name="nome" class="form-control"
+                            value="{{ usuario.nome }}" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">E-mail</label>
+                        <input type="email" class="form-control"
+                            value="{{ usuario.email }}" disabled
+                            style="background: var(--bg); cursor: not-allowed;">
+                        <div style="font-size: 12px; color: var(--text-muted); margin-top: 0.25rem;">
+                            O e-mail só pode ser alterado por um administrador.
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label">Perfil</label>
+                        <input type="text" class="form-control"
+                            value="{{ perfil_labels[usuario.perfil] }}" disabled
+                            style="background: var(--bg); cursor: not-allowed;">
+                    </div>
+                </div>
+
+                <hr style="border: none; border-top: 1px solid var(--border); margin: 1.5rem 0;">
+
+                <!-- Alterar senha -->
+                <div>
+                    <div style="font-size: 13px; font-weight: 600; text-transform: uppercase;
+                                letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 1rem;">
+                        Alterar Senha <span style="font-weight: 400; font-size: 12px;">(opcional)</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Senha Atual</label>
+                        <input type="password" name="senha_atual" class="form-control"
+                            placeholder="Digite sua senha atual">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Nova Senha</label>
+                        <input type="password" name="nova_senha" class="form-control"
+                            placeholder="Mínimo 8 caracteres">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Confirmar Nova Senha</label>
+                        <input type="password" name="confirmar_senha" class="form-control"
+                            placeholder="Repita a nova senha">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary">💾 Salvar</button>
+
+            </form>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

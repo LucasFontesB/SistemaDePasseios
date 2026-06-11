@@ -36,3 +36,5 @@ Thumbs.db
 # === ARQUIVOS DE BUILD (caso use futuramente) ===
 dist/
 build/
+
+db

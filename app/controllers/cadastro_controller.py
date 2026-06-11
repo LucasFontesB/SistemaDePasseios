@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 
 from app.core.security import get_current_user
 from app.core.templates import templates
+from app.core.flash import set_flash
 from app.database.connection import get_db
 from app.repositories.user_repository import UserRepository
 from app.repositories.tour_repository import TourRepository
@@ -80,7 +81,9 @@ async def passeio_create(request: Request, db: Session = Depends(get_db)):
         descricao=form.get("descricao", "").strip(),
         percentual_comissao=float(form["percentual_comissao"]),
     )
-    return RedirectResponse(url="/passeios", status_code=302)
+    response = RedirectResponse(url="/passeios", status_code=302)
+    set_flash(response, "Passeio cadastrado com sucesso!")
+    return response
 
 
 @router.get("/passeios/{passeio_id}/editar", response_class=HTMLResponse)
@@ -136,7 +139,9 @@ async def passeio_update(request: Request, passeio_id: str, db: Session = Depend
         descricao=form.get("descricao", "").strip(),
         percentual_comissao=float(form["percentual_comissao"]),
     )
-    return RedirectResponse(url="/passeios", status_code=302)
+    response = RedirectResponse(url="/passeios", status_code=302)
+    set_flash(response, "Passeio atualizado com sucesso!")
+    return response
 
 
 @router.post("/passeios/{passeio_id}/desativar")
@@ -149,7 +154,9 @@ async def passeio_desativar(request: Request, passeio_id: str, db: Session = Dep
     passeio = repo.find_passeio_by_id(uuid.UUID(passeio_id))
     if passeio:
         repo.soft_delete_passeio(passeio)
-    return RedirectResponse(url="/passeios", status_code=302)
+    response = RedirectResponse(url="/passeios", status_code=302)
+    set_flash(response, "Passeio desativado.", "warning")
+    return response
 
 
 # =============================================================================
@@ -201,7 +208,9 @@ async def tipo_create(request: Request, db: Session = Depends(get_db)):
         })
 
     repo.create_tipo(nome=form["nome"].strip())
-    return RedirectResponse(url="/tipos-passeio", status_code=302)
+    response = RedirectResponse(url="/tipos-passeio", status_code=302)
+    set_flash(response, "Tipo de passeio cadastrado com sucesso!")
+    return response
 
 
 @router.get("/tipos-passeio/{tipo_id}/editar", response_class=HTMLResponse)
@@ -254,7 +263,9 @@ async def tipo_update(request: Request, tipo_id: str, db: Session = Depends(get_
         })
 
     repo.update_tipo(tipo=tipo, nome=form["nome"].strip())
-    return RedirectResponse(url="/tipos-passeio", status_code=302)
+    response = RedirectResponse(url="/tipos-passeio", status_code=302)
+    set_flash(response, "Tipo de passeio atualizado com sucesso!")
+    return response
 
 
 @router.post("/tipos-passeio/{tipo_id}/desativar")
@@ -267,7 +278,9 @@ async def tipo_desativar(request: Request, tipo_id: str, db: Session = Depends(g
     tipo = repo.find_tipo_by_id(uuid.UUID(tipo_id))
     if tipo:
         repo.soft_delete_tipo(tipo)
-    return RedirectResponse(url="/tipos-passeio", status_code=302)
+    response = RedirectResponse(url="/tipos-passeio", status_code=302)
+    set_flash(response, "Tipo de passeio desativado.", "warning")
+    return response
 
 
 # =============================================================================
@@ -321,7 +334,9 @@ async def embarcacao_create(request: Request, db: Session = Depends(get_db)):
         capacidade=int(form["capacidade"]),
         observacao=form.get("observacao", "").strip(),
     )
-    return RedirectResponse(url="/embarcacoes", status_code=302)
+    response = RedirectResponse(url="/embarcacoes", status_code=302)
+    set_flash(response, "Embarcacao cadastrada com sucesso!")
+    return response
 
 
 @router.get("/embarcacoes/{embarcacao_id}/editar", response_class=HTMLResponse)
@@ -377,7 +392,9 @@ async def embarcacao_update(request: Request, embarcacao_id: str, db: Session = 
         capacidade=int(form["capacidade"]),
         observacao=form.get("observacao", "").strip(),
     )
-    return RedirectResponse(url="/embarcacoes", status_code=302)
+    response = RedirectResponse(url="/embarcacoes", status_code=302)
+    set_flash(response, "Embarcacao atualizada com sucesso!")
+    return response
 
 
 @router.post("/embarcacoes/{embarcacao_id}/desativar")
@@ -390,7 +407,9 @@ async def embarcacao_desativar(request: Request, embarcacao_id: str, db: Session
     embarcacao = repo.find_embarcacao_by_id(uuid.UUID(embarcacao_id))
     if embarcacao:
         repo.soft_delete_embarcacao(embarcacao)
-    return RedirectResponse(url="/embarcacoes", status_code=302)
+    response = RedirectResponse(url="/embarcacoes", status_code=302)
+    set_flash(response, "Embarcacao desativada.", "warning")
+    return response
 
 
 # =============================================================================

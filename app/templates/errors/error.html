@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Erro {{ codigo }} — Gestão de Passeios</title>
+    <link rel="stylesheet" href="/static/css/app.css">
+    <style>
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: var(--bg);
+        }
+        .erro-box {
+            text-align: center;
+            max-width: 480px;
+            padding: 2rem;
+        }
+        .erro-codigo {
+            font-size: 80px;
+            font-weight: 700;
+            color: var(--primary);
+            line-height: 1;
+            margin-bottom: 0.5rem;
+        }
+        .erro-titulo {
+            font-size: 22px;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 0.75rem;
+        }
+        .erro-descricao {
+            font-size: 14px;
+            color: var(--text-muted);
+            line-height: 1.6;
+            margin-bottom: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="erro-box">
+        <div class="erro-codigo">{{ codigo }}</div>
+        <div class="erro-titulo">{{ titulo }}</div>
+        <div class="erro-descricao">{{ descricao }}</div>
+        <a href="/dashboard" class="btn btn-primary">Voltar ao Dashboard</a>
+    </div>
+</body>
+</html>

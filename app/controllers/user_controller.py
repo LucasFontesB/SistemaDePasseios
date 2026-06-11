@@ -7,6 +7,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy.orm import Session
 
 from app.core.security import get_current_user, hash_password
+from app.core.flash import set_flash
 from app.core.templates import templates
 from app.core.constants import PERFIL_CHOICES
 from app.database.connection import get_db
@@ -86,7 +87,9 @@ async def usuario_create(request: Request, db: Session = Depends(get_db)):
         senha_hash=hash_password(form["senha"]),
         perfil=form["perfil"],
     )
-    return RedirectResponse(url="/usuarios", status_code=302)
+    response = RedirectResponse(url="/usuarios", status_code=302)
+    set_flash(response, "Usuario cadastrado com sucesso!")
+    return response
 
 
 # =============================================================================
@@ -156,7 +159,9 @@ async def usuario_update(request: Request, usuario_id: str, db: Session = Depend
         kwargs["senha_hash"] = hash_password(form["senha"])
 
     repo.update(editando, **kwargs)
-    return RedirectResponse(url="/usuarios", status_code=302)
+    response = RedirectResponse(url="/usuarios", status_code=302)
+    set_flash(response, "Usuario atualizado com sucesso!")
+    return response
 
 
 # =============================================================================
@@ -178,7 +183,9 @@ async def usuario_desativar(request: Request, usuario_id: str, db: Session = Dep
     if usuario:
         repo.soft_delete(usuario)
 
-    return RedirectResponse(url="/usuarios", status_code=302)
+    response = RedirectResponse(url="/usuarios", status_code=302)
+    set_flash(response, "Usuario desativado.", "warning")
+    return response
 
 
 # =============================================================================

@@ -35,7 +35,9 @@
         <div class="header-right">
             <div class="header-user">
                 <span>Olá,</span>
-                <strong>{{ usuario.nome.split()[0] }}</strong>
+                <a href="/perfil" style="font-weight:500; color: var(--text); text-decoration:none;">
+                    {{ usuario.nome.split()[0] }}
+                </a>
                 <span class="text-muted" style="font-size:11px;">({{ perfil_labels[usuario.perfil] }})</span>
             </div>
             <a href="/logout" class="header-logout">Sair</a>
@@ -106,6 +108,17 @@
          Conteúdo
          ===================================================================== -->
     <main class="main">
+        {% set flashes = request.cookies.get('flash_messages') %}
+        {% if flashes %}
+            {% set msgs = flashes | from_json %}
+            {% if msgs %}
+                {% for msg in msgs %}
+                <div class="alert alert-{{ msg.tipo }}" style="margin-bottom: 1rem;">
+                    {{ msg.mensagem }}
+                </div>
+                {% endfor %}
+            {% endif %}
+        {% endif %}
         {% block content %}{% endblock %}
     </main>
 
