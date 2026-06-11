@@ -1,0 +1,335 @@
+{% extends "layouts/base.html" %}
+{% block title %}Relatório Gerencial — Gestão de Passeios{% endblock %}
+
+{% block extra_css %}
+<style>
+.secao { margin-bottom: 1.5rem; }
+.secao-titulo {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+    padding: 0.5rem 0.75rem;
+    background: var(--bg);
+    border-left: 3px solid var(--primary);
+    margin-bottom: 0.75rem;
+    border-radius: 0 var(--radius) var(--radius) 0;
+}
+.resumo-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+.ranking-table { width: 100%; }
+.medal { font-size: 14px; }
+.bar-wrap { display: flex; align-items: center; gap: 0.5rem; }
+.bar {
+    height: 8px;
+    background: var(--primary);
+    border-radius: 4px;
+    min-width: 4px;
+    opacity: 0.7;
+}
+.bar.gold { background: #FFD700; opacity: 1; }
+.bar.silver { background: #C0C0C0; opacity: 1; }
+.bar.bronze { background: #CD7F32; opacity: 1; }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.dia-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.3rem 0;
+    font-size: 13px;
+}
+.dia-bar-fill {
+    height: 10px;
+    background: var(--primary);
+    border-radius: 4px;
+    opacity: 0.6;
+}
+.dia-bar-fill.max { opacity: 1; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <div>
+        <div class="breadcrumb">
+            <a href="/dashboard">Dashboard</a>
+            <span class="breadcrumb-sep">›</span>
+            <span>Relatório Gerencial</span>
+        </div>
+        <h1 class="page-title">Relatório Gerencial</h1>
+    </div>
+    <a href="/relatorios/gerencial/pdf?data_inicial={{ filtros.data_inicial }}&data_final={{ filtros.data_final }}"
+        target="_blank" class="btn btn-primary">🖨️ Gerar PDF</a>
+</div>
+
+<!-- Filtros -->
+<div class="card" style="margin-bottom: 1.25rem;">
+    <div class="card-body" style="padding: 1rem 1.25rem;">
+        <form method="get" action="/relatorios/gerencial">
+            <div style="display:flex; gap:0.75rem; align-items:end; flex-wrap:wrap;">
+                <div class="form-group" style="margin-bottom:0;">
+                    <label class="form-label">Data Inicial</label>
+                    <input type="date" name="data_inicial" class="form-control" value="{{ filtros.data_inicial }}">
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                    <label class="form-label">Data Final</label>
+                    <input type="date" name="data_final" class="form-control" value="{{ filtros.data_final }}">
+                </div>
+                <button type="submit" class="btn btn-primary">Filtrar</button>
+                <a href="/relatorios/gerencial" class="btn btn-outline">Limpar</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- =========================================================================
+     1. Resumo Geral
+     ========================================================================= -->
+<div class="secao">
+    <div class="secao-titulo">📊 Resumo Geral</div>
+    <div class="resumo-grid">
+        <div class="stat-card primary">
+            <div class="stat-card-label">Total de Vendas</div>
+            <div class="stat-card-value">{{ dados.resumo.total_vendas }}</div>
+            <div class="stat-card-sub">{{ dados.resumo.vendas_ativas }} ativas</div>
+        </div>
+        <div class="stat-card success">
+            <div class="stat-card-label">Receita Total</div>
+            <div class="stat-card-value" style="font-size:18px;">R$ {{ "%.2f"|format(dados.resumo.receita_total)|replace(".", ",") }}</div>
+            <div class="stat-card-sub">Ticket médio: R$ {{ "%.2f"|format(dados.resumo.ticket_medio)|replace(".", ",") }}</div>
+        </div>
+        <div class="stat-card warning">
+            <div class="stat-card-label">Total Comissões</div>
+            <div class="stat-card-value" style="font-size:18px;">R$ {{ "%.2f"|format(dados.resumo.comissao_total)|replace(".", ",") }}</div>
+        </div>
+        <div class="stat-card secondary">
+            <div class="stat-card-label">Passageiros</div>
+            <div class="stat-card-value">{{ dados.resumo.total_passageiros }}</div>
+            <div class="stat-card-sub">Média: {{ "%.1f"|format(dados.resumo.media_passageiros) }} por venda</div>
+        </div>
+    </div>
+    <div class="resumo-grid">
+        <div class="stat-card" style="border-top: 3px solid var(--danger);">
+            <div class="stat-card-label">Cancelamentos</div>
+            <div class="stat-card-value">{{ dados.resumo.canceladas }}</div>
+            <div class="stat-card-sub">{{ dados.resumo.taxa_cancelamento }}% do total</div>
+        </div>
+    </div>
+</div>
+
+<!-- =========================================================================
+     2. Rankings
+     ========================================================================= -->
+<div class="two-col">
+
+    <!-- Vendedores -->
+    <div class="secao">
+        <div class="secao-titulo">👤 Ranking de Vendedores</div>
+        <div class="table-wrapper">
+            <table class="table ranking-table">
+                <thead><tr><th>#</th><th>Vendedor</th><th>Vendas</th><th>Receita</th><th>Comissão</th></tr></thead>
+                <tbody>
+                {% if dados.vendedores %}
+                    {% for v in dados.vendedores %}
+                    <tr>
+                        <td>{% if loop.index == 1 %}🥇{% elif loop.index == 2 %}🥈{% elif loop.index == 3 %}🥉{% else %}{{ loop.index }}{% endif %}</td>
+                        <td><strong>{{ v.nome }}</strong></td>
+                        <td><strong style="color:var(--primary);">{{ v.quantidade }}</strong></td>
+                        <td>R$ {{ "%.2f"|format(v.receita)|replace(".", ",") }}</td>
+                        <td>R$ {{ "%.2f"|format(v.comissao)|replace(".", ",") }}</td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr><td colspan="5" class="table-empty">Sem dados no período.</td></tr>
+                {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Passeios -->
+    <div class="secao">
+        <div class="secao-titulo">🗺️ Passeios Mais Vendidos</div>
+        <div class="table-wrapper">
+            <table class="table ranking-table">
+                <thead><tr><th>#</th><th>Passeio</th><th>Vendas</th><th>Receita</th><th>Comissão</th></tr></thead>
+                <tbody>
+                {% if dados.passeios %}
+                    {% for p in dados.passeios %}
+                    <tr>
+                        <td>{% if loop.index == 1 %}🥇{% elif loop.index == 2 %}🥈{% elif loop.index == 3 %}🥉{% else %}{{ loop.index }}{% endif %}</td>
+                        <td><strong>{{ p.nome }}</strong></td>
+                        <td><strong style="color:var(--primary);">{{ p.quantidade }}</strong></td>
+                        <td>R$ {{ "%.2f"|format(p.receita)|replace(".", ",") }}</td>
+                        <td>R$ {{ "%.2f"|format(p.comissao)|replace(".", ",") }}</td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr><td colspan="5" class="table-empty">Sem dados no período.</td></tr>
+                {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<div class="two-col">
+
+    <!-- Tipos de passeio -->
+    <div class="secao">
+        <div class="secao-titulo">🏷️ Tipos de Passeio</div>
+        <div class="table-wrapper">
+            <table class="table">
+                <thead><tr><th>#</th><th>Tipo</th><th>Vendas</th><th>Receita</th></tr></thead>
+                <tbody>
+                {% if dados.tipos %}
+                    {% for t in dados.tipos %}
+                    <tr>
+                        <td>{% if loop.index == 1 %}🥇{% elif loop.index == 2 %}🥈{% elif loop.index == 3 %}🥉{% else %}{{ loop.index }}{% endif %}</td>
+                        <td><strong>{{ t.nome }}</strong></td>
+                        <td><strong style="color:var(--primary);">{{ t.quantidade }}</strong></td>
+                        <td>R$ {{ "%.2f"|format(t.receita)|replace(".", ",") }}</td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr><td colspan="4" class="table-empty">Sem dados.</td></tr>
+                {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Embarcações -->
+    <div class="secao">
+        <div class="secao-titulo">🚢 Embarcações Mais Utilizadas</div>
+        <div class="table-wrapper">
+            <table class="table">
+                <thead><tr><th>#</th><th>Embarcação</th><th>Cap.</th><th>Embarques</th><th>Pax</th></tr></thead>
+                <tbody>
+                {% if dados.embarcacoes %}
+                    {% for e in dados.embarcacoes %}
+                    <tr>
+                        <td>{% if loop.index == 1 %}🥇{% elif loop.index == 2 %}🥈{% elif loop.index == 3 %}🥉{% else %}{{ loop.index }}{% endif %}</td>
+                        <td><strong>{{ e.nome }}</strong></td>
+                        <td>{{ e.capacidade }}</td>
+                        <td><strong style="color:var(--primary);">{{ e.quantidade }}</strong></td>
+                        <td>{{ e.passageiros }}</td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr><td colspan="5" class="table-empty">Sem dados.</td></tr>
+                {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<!-- =========================================================================
+     3. Antecedência
+     ========================================================================= -->
+<div class="secao">
+    <div class="secao-titulo">📅 Antecedência de Reserva</div>
+    <div class="cards-grid">
+        <div class="stat-card primary">
+            <div class="stat-card-label">Média de Antecedência</div>
+            <div class="stat-card-value">{{ dados.antecedencia.media_dias }} dias</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-card-label">No mesmo dia</div>
+            <div class="stat-card-value">{{ dados.antecedencia.no_dia }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-card-label">Até 7 dias antes</div>
+            <div class="stat-card-value">{{ dados.antecedencia.ate_7_dias }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-card-label">8 a 30 dias antes</div>
+            <div class="stat-card-value">{{ dados.antecedencia.ate_30_dias }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-card-label">Mais de 30 dias</div>
+            <div class="stat-card-value">{{ dados.antecedencia.mais_30_dias }}</div>
+        </div>
+    </div>
+</div>
+
+<!-- =========================================================================
+     4. Horários e Dias da Semana
+     ========================================================================= -->
+<div class="two-col">
+
+    <div class="secao">
+        <div class="secao-titulo">⏰ Horários Mais Populares</div>
+        <div class="table-wrapper">
+            <table class="table">
+                <thead><tr><th>Horário</th><th>Embarques</th></tr></thead>
+                <tbody>
+                {% if dados.horarios %}
+                    {% for h in dados.horarios %}
+                    <tr>
+                        <td><strong>{{ h.horario_saida.strftime("%H:%M") }}</strong></td>
+                        <td><strong style="color:var(--primary);">{{ h.quantidade }}</strong></td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr><td colspan="2" class="table-empty">Sem dados.</td></tr>
+                {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="secao">
+        <div class="secao-titulo">📆 Embarques por Dia da Semana</div>
+        {% set max_dia = dados.dias_semana | map(attribute='quantidade') | max %}
+        <div class="card" style="padding: 1rem 1.25rem;">
+            {% for d in dados.dias_semana %}
+            <div class="dia-bar">
+                <span style="width: 70px; font-size:13px;">{{ d.dia[:3] }}</span>
+                <div class="dia-bar-fill {% if d.quantidade == max_dia and d.quantidade > 0 %}max{% endif %}"
+                    style="width: {{ (d.quantidade / max_dia * 120)|int if max_dia > 0 else 0 }}px;"></div>
+                <span style="font-size:13px; font-weight: {% if d.quantidade == max_dia and d.quantidade > 0 %}700{% else %}400{% endif %};">
+                    {{ d.quantidade }}
+                </span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+</div>
+
+<!-- =========================================================================
+     5. Formas de Pagamento
+     ========================================================================= -->
+<div class="secao">
+    <div class="secao-titulo">💳 Formas de Pagamento</div>
+    {% set total_fp = dados.formas_pagamento | sum(attribute='quantidade') %}
+    <div class="table-wrapper">
+        <table class="table">
+            <thead><tr><th>Forma</th><th>Vendas</th><th>%</th><th>Receita</th></tr></thead>
+            <tbody>
+            {% if dados.formas_pagamento %}
+                {% for f in dados.formas_pagamento %}
+                <tr>
+                    <td><strong>{{ forma_pagamento_labels.get(f.forma_pagamento, "Não informada") if f.forma_pagamento else "Não informada" }}</strong></td>
+                    <td>{{ f.quantidade }}</td>
+                    <td>{{ "%.1f"|format(f.quantidade / total_fp * 100) if total_fp > 0 else 0 }}%</td>
+                    <td>R$ {{ "%.2f"|format(f.receita)|replace(".", ",") }}</td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr><td colspan="4" class="table-empty">Sem dados.</td></tr>
+            {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}

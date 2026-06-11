@@ -19,6 +19,7 @@ from app.controllers.report_controller import router as report_router
 from app.controllers.agenda_controller import router as agenda_router
 from app.controllers.pdf_controller import router as pdf_router
 from app.controllers.perfil_controller import router as perfil_router
+from app.controllers.gerencial_controller import router as gerencial_router
 
 # =============================================================================
 # Aplicação
@@ -109,6 +110,7 @@ app.include_router(report_router)
 app.include_router(agenda_router)
 app.include_router(pdf_router)
 app.include_router(perfil_router)
+app.include_router(gerencial_router)
 
 
 @app.get("/", include_in_schema=False)
