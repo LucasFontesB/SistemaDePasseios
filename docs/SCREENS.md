@@ -144,16 +144,28 @@ Cadastrar venda de passeio.
 Visualizar informações completas.
 
 ## Exibir
-
+ 
 * Todos os dados da venda
 * Comprovantes anexados
 * Histórico de alterações
+* Histórico de pagamentos (data, valor, forma de pagamento, observação,
+  quem registrou)
+* Resumo financeiro: valor total, valor pago, saldo restante
+* Status de pagamento: NÃO PAGO / PARCIAL / PAGO
 
 ## Ações
-
+ 
 * Editar
 * Alterar Status
 * Anexar Comprovante
+* Registrar Pagamento
+## Regras
+ 
+* O campo forma_pagamento do cadastro da venda é legado e não é mais
+  exigido — cada pagamento individual define sua própria forma de
+  pagamento.
+* A comissão exibida continua sendo calculada sobre o valor total da
+  venda, independente do quanto já foi pago.
 
 ---
 

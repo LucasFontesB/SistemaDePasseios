@@ -59,6 +59,29 @@ class Venda(Base):
     usuario: Mapped["Usuario"] = relationship("Usuario", back_populates="vendas")
     comprovantes: Mapped[list["Comprovante"]] = relationship("Comprovante", back_populates="venda")
     historico: Mapped[list["VendaHistorico"]] = relationship("VendaHistorico", back_populates="venda", order_by="VendaHistorico.criado_em.desc()")
+    comprovantes: Mapped[list["Comprovante"]] = relationship("Comprovante", back_populates="venda")
+    pagamentos: Mapped[list["Pagamento"]] = relationship(
+        "Pagamento", back_populates="venda", order_by="Pagamento.criado_em.desc()"
+    )
+    historico: Mapped[list["VendaHistorico"]] = relationship("VendaHistorico", back_populates="venda",
+                                                             order_by="VendaHistorico.criado_em.desc()")
+
+    @property
+    def valor_pago(self) -> float:
+        return sum((float(p.valor) for p in self.pagamentos), 0.0)
+
+    @property
+    def saldo_restante(self) -> float:
+        return float(self.valor_total) - self.valor_pago
+
+    @property
+    def status_pagamento(self) -> str:
+        pago = self.valor_pago
+        if pago <= 0:
+            return "NAO_PAGO"
+        if pago < float(self.valor_total):
+            return "PARCIAL"
+        return "PAGO"
 
     def __repr__(self) -> str:
         return f"<Venda id={self.id} numero={self.numero_venda} status={self.status}>"

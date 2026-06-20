@@ -113,7 +113,7 @@
                 <div class="detail-item"><label>Valor Total</label><span class="valor-destaque">R$ {{ "%.2f"|format(venda.valor_total)|replace(".", ",") }}</span></div>
                 <div class="detail-item"><label>% Comissão</label><span>{{ "%.2f"|format(venda.percentual_comissao)|replace(".", ",") }}%</span></div>
                 <div class="detail-item"><label>Valor Comissão</label><span class="comissao-destaque">R$ {{ "%.2f"|format(venda.valor_comissao)|replace(".", ",") }}</span></div>
-                <div class="detail-item"><label>Forma de Pagamento</label><span>{{ forma_pagamento_labels.get(venda.forma_pagamento, "Não informada") if venda.forma_pagamento else "Não informada" }}</span></div>
+                <!-- ><div class="detail-item"><label>Forma de Pagamento</label><span>{{ forma_pagamento_labels.get(venda.forma_pagamento, "Não informada") if venda.forma_pagamento else "Não informada" }}</span></div> < -->
             </div>
         </div>
 
@@ -160,6 +160,101 @@
                     </div>
                     <div class="text-muted" style="font-size:12px; margin-top:0.3rem;">PDF, JPG, JPEG, PNG — máx. 10 MB</div>
                 </form>
+            </div>
+        </div>
+
+        <div class="detail-section">
+            <div class="detail-section-title" style="display:flex; align-items:center; justify-content:space-between;">
+                <span>Pagamentos</span>
+                {% if venda.status_pagamento == "PAGO" %}
+                    <span class="badge" style="background-color: var(--success); color:#fff;">PAGO</span>
+                {% elif venda.status_pagamento == "PARCIAL" %}
+                    <span class="badge" style="background-color:#FFC107; color:#212529;">PARCIAL</span>
+                {% else %}
+                    <span class="badge" style="background-color: var(--text-muted); color:#fff;">NÃO PAGO</span>
+                {% endif %}
+            </div>
+
+            <!-- Resumo financeiro -->
+            <div class="detail-grid">
+                <div class="detail-item">
+                    <label>Valor Total</label>
+                    <span class="valor-destaque">R$ {{ "%.2f"|format(venda.valor_total)|replace(".", ",") }}</span>
+                </div>
+                <div class="detail-item">
+                    <label>Valor Pago</label>
+                    <span class="comissao-destaque">R$ {{ "%.2f"|format(venda.valor_pago)|replace(".", ",") }}</span>
+                </div>
+                <div class="detail-item">
+                    <label>Saldo Restante</label>
+                    <span>R$ {{ "%.2f"|format(venda.saldo_restante)|replace(".", ",") }}</span>
+                </div>
+            </div>
+
+            <div style="padding: 0 1.25rem 1.25rem;">
+
+                <!-- Histórico de pagamentos -->
+                {% if venda.pagamentos %}
+                <table class="table" style="margin:0 0 1rem;">
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Valor</th>
+                            <th>Forma</th>
+                            <th>Observação</th>
+                            <th>Registrado por</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for pagamento in venda.pagamentos %}
+                        <tr>
+                            <td style="white-space:nowrap; font-size:12px;">{{ pagamento.criado_em.strftime("%d/%m/%Y %H:%M") }}</td>
+                            <td style="{% if pagamento.valor < 0 %}color: var(--danger);{% endif %}">
+                                R$ {{ "%.2f"|format(pagamento.valor)|replace(".", ",") }}
+                            </td>
+                            <td>{{ forma_pagamento_labels.get(pagamento.forma_pagamento, pagamento.forma_pagamento) }}</td>
+                            <td class="text-muted" style="font-size:13px;">{{ pagamento.observacao or "—" }}</td>
+                            <td class="text-muted" style="font-size:12px;">{{ pagamento.usuario.nome.split()[0] if pagamento.usuario else "—" }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <p class="text-muted" style="margin:0 0 1rem; font-size:14px;">Nenhum pagamento registrado.</p>
+                {% endif %}
+
+                {% if erro_pagamento is defined and erro_pagamento %}
+                <div class="alert alert-danger" style="margin-bottom:0.75rem;">{{ erro_pagamento }}</div>
+                {% endif %}
+
+                <!-- Formulário de novo pagamento -->
+                <form method="post" action="/vendas/{{ venda.id }}/pagamentos">
+                    <div style="display:flex; gap:0.75rem; align-items:flex-end; flex-wrap:wrap;">
+                        <div class="form-group" style="margin-bottom:0; flex:1; min-width:140px;">
+                            <label class="form-label">Valor (R$)</label>
+                            <input type="number" name="valor" class="form-control" step="0.01" placeholder="0,00" required>
+                        </div>
+                        <div class="form-group" style="margin-bottom:0; flex:1; min-width:160px;">
+                            <label class="form-label">Forma de Pagamento</label>
+                            <select name="forma_pagamento" class="form-control" required>
+                                <option value="">Selecione...</option>
+                                <option value="DINHEIRO">Dinheiro</option>
+                                <option value="PIX">PIX</option>
+                                <option value="CARTAO_DEBITO">Cartão de Débito</option>
+                                <option value="CARTAO_CREDITO">Cartão de Crédito</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="margin-bottom:0; flex:2; min-width:200px;">
+                            <label class="form-label">Observação</label>
+                            <input type="text" name="observacao" class="form-control" placeholder="Ex: Sinal pago pela agência">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Registrar</button>
+                    </div>
+                    <div class="text-muted" style="font-size:12px; margin-top:0.3rem;">
+                        Para corrigir um lançamento errado, registre um novo pagamento com valor negativo (ajuste).
+                    </div>
+                </form>
+
             </div>
         </div>
 

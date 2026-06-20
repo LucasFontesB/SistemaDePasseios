@@ -200,6 +200,45 @@ Arquivos anexados a uma venda.
 * O banco armazenará apenas metadados.
 
 ---
+ 
+# Tabela: pagamentos
+ 
+Histórico de pagamentos recebidos referentes a uma venda.
+ 
+| Campo           | Tipo          |
+| --------------- | ------------- |
+| id               | UUID          |
+| venda_id         | UUID          |
+| valor            | NUMERIC(10,2) |
+| forma_pagamento  | VARCHAR(30)   |
+| observacao       | TEXT          |
+| usuario_id       | UUID          |
+| criado_em        | TIMESTAMP     |
+ 
+## Observações
+ 
+* Uma venda pode possuir múltiplos pagamentos (ex: sinal pago por agência +
+  saldo pago na recepção).
+* O valor pago total da venda é a soma de todos os pagamentos não cancelados.
+* Não há soft delete nem exclusão física: correções de lançamentos errados
+  são feitas através de um novo registro com valor negativo (lançamento de
+  ajuste), preservando o histórico financeiro completo (RN007).
+* O campo forma_pagamento da tabela vendas é considerado legado a partir da
+  introdução desta tabela e não deve mais ser exigido no cadastro/edição de
+  venda. Cada pagamento individual carrega sua própria forma de pagamento.
+
+## Status de Pagamento (calculado, não persistido)
+ 
+Calculado dinamicamente a partir da soma dos pagamentos:
+ 
+* NAO_PAGO — soma dos pagamentos <= 0
+* PARCIAL — soma dos pagamentos > 0 e < valor_total da venda
+* PAGO — soma dos pagamentos >= valor_total da venda
+Este status é independente do campo status da venda (PENDENTE, CONFIRMADO,
+EMBARCADO etc.) — uma venda pode estar CONFIRMADO e PARCIAL no pagamento
+simultaneamente.
+
+---
 
 # Relacionamentos
 
@@ -217,6 +256,9 @@ embarcacoes (1)
 
 vendas (1)
 └── comprovantes (N)
+
+vendas (1)
+└── pagamentos (N)
 
 ---
 
@@ -243,6 +285,10 @@ idx_vendas_criado_em
 ## comprovantes
 
 idx_comprovantes_venda
+
+## pagamentos
+ 
+idx_pagamentos_venda
 
 ---
 
@@ -285,3 +331,18 @@ A exclusão física de registros será proibida para usuários do sistema.
 RN007
 
 Todas as ações financeiras deverão permanecer rastreáveis para auditoria futura.
+
+RN008
+ 
+Uma venda poderá possuir múltiplos pagamentos. O valor pago total é a soma
+de todos os pagamentos registrados.
+ 
+RN009
+ 
+A comissão é sempre calculada sobre o valor_total da venda, independente do
+valor efetivamente pago até o momento.
+ 
+RN010
+ 
+Pagamentos nunca são excluídos. Correções são feitas através de um novo
+lançamento de ajuste (valor negativo).

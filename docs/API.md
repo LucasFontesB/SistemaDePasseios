@@ -222,6 +222,46 @@ Remoção lógica recomendada.
 
 ---
 
+# Pagamentos
+ 
+## POST /vendas/{id}/pagamentos
+ 
+Registra um novo pagamento para a venda.
+ 
+### Entrada
+ 
+valor
+forma_pagamento
+observacao (opcional)
+ 
+### Regras
+ 
+* valor não pode ser zero.
+* Para corrigir um lançamento errado, registrar um novo pagamento com valor
+  negativo equivalente (lançamento de ajuste). Pagamentos nunca são excluídos.
+* forma_pagamento deve ser um dos valores: DINHEIRO, PIX, CARTAO_DEBITO,
+  CARTAO_CREDITO.
+* O valor pago total e o status de pagamento (NAO_PAGO/PARCIAL/PAGO) são
+  recalculados automaticamente a partir da soma dos pagamentos da venda.
+* A comissão da venda não é afetada por este endpoint — permanece calculada
+  sobre o valor_total.
+### Redirecionamento
+ 
+/vendas/{id}
+ 
+---
+ 
+## GET /vendas/{id}
+ 
+(Endpoint já existente, sem alteração de rota)
+ 
+### Observação
+ 
+A tela de detalhes da venda agora também exibe o histórico de pagamentos,
+o valor pago, o saldo restante e o status de pagamento.
+
+---
+
 # Passeios
 
 ## GET /passeios

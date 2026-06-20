@@ -20,6 +20,8 @@ from app.controllers.agenda_controller import router as agenda_router
 from app.controllers.pdf_controller import router as pdf_router
 from app.controllers.perfil_controller import router as perfil_router
 from app.controllers.gerencial_controller import router as gerencial_router
+from app.controllers.sale_controller import router as venda_router
+from app.controllers.payment_controller import router as payment_router
 
 # =============================================================================
 # Aplicação
@@ -111,6 +113,8 @@ app.include_router(agenda_router)
 app.include_router(pdf_router)
 app.include_router(perfil_router)
 app.include_router(gerencial_router)
+app.include_router(venda_router)
+app.include_router(payment_router)
 
 
 @app.get("/", include_in_schema=False)

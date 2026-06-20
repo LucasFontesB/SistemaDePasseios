@@ -72,13 +72,15 @@ def _secao_voucher(venda: Venda, logo_path: str = None) -> list:
     ))
     elementos.append(Spacer(1, 0.3 * cm))
 
-    # Dados em duas colunas lado a lado
+    valor_total_fmt = f"R$ {float(venda.valor_total):,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+
     dados_passeio = [
-        ("Passeio",       venda.passeio.nome),
-        ("Tipo",          venda.tipo_passeio.nome),
-        ("Embarcação",    venda.embarcacao.nome if venda.embarcacao else "—"),
+        ("Passeio", venda.passeio.nome),
+        ("Tipo", venda.tipo_passeio.nome),
+        ("Embarcação", venda.embarcacao.nome if venda.embarcacao else "—"),
         ("Data de Saída", venda.data_saida.strftime("%d/%m/%Y")),
-        ("Horário",       venda.horario_saida.strftime("%H:%M") if venda.horario_saida else "—"),
+        ("Horário", venda.horario_saida.strftime("%H:%M") if venda.horario_saida else "—"),
+        ("Valor Total", valor_total_fmt),
     ]
     dados_contratante = [
         ("Contratante", venda.contratante),
@@ -124,15 +126,19 @@ def _secao_recibo(venda: Venda, logo_path: str = None) -> list:
     ))
     elementos.append(Spacer(1, 0.3 * cm))
 
-    forma = FORMA_LABELS.get(venda.forma_pagamento, "Não informada") if venda.forma_pagamento else "Não informada"
+    valor_total_fmt = f"R$ {float(venda.valor_total):,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
 
     dados_recibo = [
-        ("Contratante",         venda.contratante),
-        ("Passeio",             venda.passeio.nome),
-        ("Data do Passeio",     venda.data_saida.strftime("%d/%m/%Y")),
-        ("Passageiros",         f"{venda.adultos + venda.criancas} ({venda.adultos} adulto(s), {venda.criancas} criança(s))"),
-        ("Forma de Pagamento",  forma),
+        ("Contratante", venda.contratante),
+        ("Passeio", venda.passeio.nome),
+        ("Data do Passeio", venda.data_saida.strftime("%d/%m/%Y")),
+        ("Passageiros", f"{venda.adultos + venda.criancas} ({venda.adultos} adulto(s), {venda.criancas} criança(s))"),
+        ("Valor Total", valor_total_fmt),
     ]
+
+    if venda.status_pagamento == "PARCIAL":
+        saldo_fmt = f"R$ {venda.saldo_restante:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+        dados_recibo.append(("Saldo Restante", saldo_fmt))
 
     elementos.append(_titulo_secao("DADOS DO PAGAMENTO"))
     elementos.append(_tabela_dados(dados_recibo))
@@ -276,9 +282,10 @@ def _duas_colunas(esq: tuple, dir: tuple) -> Table:
 
 
 def _caixa_valor(venda: Venda) -> Table:
-    valor_fmt = f"R$ {float(venda.valor_total):,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+    valor_fmt = f"R$ {venda.valor_pago:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+    rotulo = "VALOR PAGO" if venda.status_pagamento == "PARCIAL" else "VALOR TOTAL PAGO"
     data = [[
-        Paragraph("VALOR TOTAL PAGO", _estilo(8, TA_CENTER, color="#6C757D")),
+        Paragraph(rotulo, _estilo(8, TA_CENTER, color="#6C757D")),
         Paragraph(f'<b>{valor_fmt}</b>', _estilo(16, TA_CENTER, color="#198754", bold=True)),
     ]]
     tabela = Table(data, colWidths=["40%", "60%"])
