@@ -22,6 +22,10 @@ from app.controllers.perfil_controller import router as perfil_router
 from app.controllers.gerencial_controller import router as gerencial_router
 from app.controllers.sale_controller import router as venda_router
 from app.controllers.payment_controller import router as payment_router
+from app.controllers.agencia_controller import router as agencia_router
+from app.controllers.guia_controller import router as guia_router
+from app.controllers.grupo_controller import router as grupo_router
+from app.controllers.tipo_apartamento_controller import router as tipo_apartamento_router
 
 # =============================================================================
 # Aplicação
@@ -115,6 +119,10 @@ app.include_router(perfil_router)
 app.include_router(gerencial_router)
 app.include_router(venda_router)
 app.include_router(payment_router)
+app.include_router(agencia_router)
+app.include_router(guia_router)
+app.include_router(grupo_router)
+app.include_router(tipo_apartamento_router)
 
 
 @app.get("/", include_in_schema=False)

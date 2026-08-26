@@ -1,0 +1,132 @@
+{% extends "layouts/base.html" %}
+{% block title %}Tipos de Apartamento — Gestão de Passeios{% endblock %}
+
+{% block extra_css %}
+<style>
+.cadastro-layout {
+    display: grid;
+    grid-template-columns: 1fr 360px;
+    gap: 1.5rem;
+    align-items: start;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <div>
+        <div class="breadcrumb">
+            <a href="/dashboard">Dashboard</a>
+            <span class="breadcrumb-sep">›</span>
+            <span>Tipos de Apartamento</span>
+        </div>
+        <h1 class="page-title">Tipos de Apartamento</h1>
+    </div>
+</div>
+
+<div class="cadastro-layout">
+
+    <!-- Listagem -->
+    <div class="table-wrapper">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Ordem</th>
+                    <th>Nome</th>
+                    <th>Diária Net Padrão</th>
+                    <th>Diária Sistema Padrão</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if tipos %}
+                    {% for t in tipos %}
+                    <tr>
+                        <td>{{ t.ordem }}</td>
+                        <td><strong>{{ t.nome }}</strong></td>
+                        <td>R$ {{ "%.2f"|format(t.valor_diaria_net_padrao)|replace(".", ",") }}</td>
+                        <td>R$ {{ "%.2f"|format(t.valor_diaria_sistema_padrao)|replace(".", ",") }}</td>
+                        <td style="white-space:nowrap;">
+                            <a href="/tipos-apartamento/{{ t.id }}/editar" class="btn btn-outline btn-sm">Editar</a>
+                            <form method="post" action="/tipos-apartamento/{{ t.id }}/desativar" style="display:inline;">
+                                <button type="submit" class="btn btn-danger btn-sm"
+                                    onclick="return confirm('Desativar {{ t.nome }}?')">Desativar</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr><td colspan="5" class="table-empty">Nenhum tipo de apartamento cadastrado.</td></tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Formulário -->
+    <div class="card">
+        <div class="card-body">
+            <h2 class="card-title">
+                {% if editando %}Editar Tipo de Apartamento{% else %}Novo Tipo de Apartamento{% endif %}
+            </h2>
+
+            {% if erros %}
+            <div class="alert alert-danger">
+                {% for e in erros %}<div>• {{ e }}</div>{% endfor %}
+            </div>
+            {% endif %}
+
+            <form method="post"
+                action="{% if editando %}/tipos-apartamento/{{ editando.id }}/editar{% else %}/tipos-apartamento{% endif %}">
+
+                <div class="form-group">
+                    <label class="form-label">Nome *</label>
+                    <input type="text" name="nome" class="form-control"
+                        value="{% if editando %}{{ editando.nome }}{% elif form_values is defined %}{{ form_values.nome }}{% endif %}"
+                        placeholder="Ex: Duplo/Casal" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Ordem de Exibição</label>
+                    <input type="number" name="ordem" class="form-control"
+                        value="{% if editando %}{{ editando.ordem }}{% elif form_values is defined %}{{ form_values.ordem }}{% else %}0{% endif %}"
+                        min="0">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Diária Net Padrão (R$)</label>
+                    <input type="number" name="valor_diaria_net_padrao" class="form-control"
+                        value="{% if editando %}{{ editando.valor_diaria_net_padrao }}{% elif form_values is defined %}{{ form_values.valor_diaria_net_padrao }}{% else %}0{% endif %}"
+                        min="0" step="0.01" placeholder="0,00">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Diária Sistema Padrão (R$)</label>
+                    <input type="number" name="valor_diaria_sistema_padrao" class="form-control"
+                        value="{% if editando %}{{ editando.valor_diaria_sistema_padrao }}{% elif form_values is defined %}{{ form_values.valor_diaria_sistema_padrao }}{% else %}0{% endif %}"
+                        min="0" step="0.01" placeholder="0,00">
+                    <div class="text-muted" style="font-size:12px; margin-top:0.3rem;">
+                        Valores padrão são apenas referência — pré-preenchem a linha ao adicionar este tipo num grupo, mas o valor gravado é sempre o editado ali (RN-G005).
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Observação</label>
+                    <textarea name="observacao" class="form-control" rows="2"
+                        placeholder="Observação opcional...">{% if editando %}{{ editando.observacao or "" }}{% elif form_values is defined %}{{ form_values.observacao }}{% endif %}</textarea>
+                </div>
+
+                <div style="display:flex; gap:0.5rem;">
+                    <button type="submit" class="btn btn-primary">💾 Salvar</button>
+                    {% if editando %}
+                    <a href="/tipos-apartamento" class="btn btn-outline">Cancelar</a>
+                    {% endif %}
+                </div>
+
+            </form>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

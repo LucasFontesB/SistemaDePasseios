@@ -1,0 +1,140 @@
+{% extends "layouts/base.html" %}
+{% block title %}{% if agencia %}Editar Agência{% else %}Nova Agência{% endif %} — Gestão de Passeios{% endblock %}
+
+{% block extra_css %}
+<style>
+.form-section {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 1.25rem;
+    box-shadow: var(--shadow);
+}
+.form-section-title {
+    padding: 0.85rem 1.25rem;
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+    border-radius: var(--radius) var(--radius) 0 0;
+}
+.form-section-body {
+    padding: 1.25rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+.form-section-body.full { grid-template-columns: 1fr; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+{% set is_edit = agencia is not none %}
+
+<div class="page-header">
+    <div>
+        <div class="breadcrumb">
+            <a href="/dashboard">Dashboard</a>
+            <span class="breadcrumb-sep">›</span>
+            <a href="/agencias">Agências</a>
+            <span class="breadcrumb-sep">›</span>
+            <span>{% if is_edit %}Editar{% else %}Nova{% endif %}</span>
+        </div>
+        <h1 class="page-title">{% if is_edit %}Editar Agência{% else %}Nova Agência{% endif %}</h1>
+    </div>
+</div>
+
+{% if erros %}
+<div class="alert alert-danger">
+    {% for erro in erros %}<div>• {{ erro }}</div>{% endfor %}
+</div>
+{% endif %}
+
+<form method="post" action="{% if is_edit %}/agencias/{{ agencia.id }}/editar{% else %}/agencias{% endif %}">
+
+    {% macro val(campo, default='') %}
+        {%- if form_values is defined and form_values[campo] is defined -%}
+            {{ form_values[campo] }}
+        {%- elif is_edit and agencia[campo] is defined and agencia[campo] is not none -%}
+            {{ agencia[campo] }}
+        {%- else -%}
+            {{ default }}
+        {%- endif -%}
+    {% endmacro %}
+
+    <!-- Identificação -->
+    <div class="form-section">
+        <div class="form-section-title">Identificação</div>
+        <div class="form-section-body">
+            <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">Nome *</label>
+                <input type="text" name="nome" class="form-control" value="{{ val('nome') }}" placeholder="Razão social" required>
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">Nome Fantasia</label>
+                <input type="text" name="nome_fantasia" class="form-control" value="{{ val('nome_fantasia') }}">
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">CNPJ</label>
+                <input type="text" name="cnpj" class="form-control" value="{{ val('cnpj') }}" placeholder="00.000.000/0000-00">
+            </div>
+        </div>
+    </div>
+
+    <!-- Contato -->
+    <div class="form-section">
+        <div class="form-section-title">Contato</div>
+        <div class="form-section-body">
+            <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">Pessoa de Contato</label>
+                <input type="text" name="contato" class="form-control" value="{{ val('contato') }}">
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">Telefone</label>
+                <input type="text" name="telefone" class="form-control" value="{{ val('telefone') }}" placeholder="(00) 00000-0000">
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">E-mail</label>
+                <input type="email" name="email" class="form-control" value="{{ val('email') }}">
+            </div>
+        </div>
+    </div>
+
+    <!-- Comercial -->
+    <div class="form-section">
+        <div class="form-section-title">Comercial</div>
+        <div class="form-section-body">
+            <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">% Comissão Padrão</label>
+                <input type="number" name="percentual_comissao_padrao" class="form-control"
+                    value="{{ val('percentual_comissao_padrao', '0') }}" min="0" max="100" step="0.01" placeholder="0,00">
+                <div class="text-muted" style="font-size:12px; margin-top:0.3rem;">
+                    Usado apenas para pré-preencher a sugestão de diária a lançar no sistema. Zero significa que não há sugestão automática.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Observações -->
+    <div class="form-section">
+        <div class="form-section-title">Observações</div>
+        <div class="form-section-body full">
+            <div class="form-group" style="margin-bottom:0;">
+                <textarea name="observacao" class="form-control" rows="3" placeholder="Observações sobre a agência...">{{ val('observacao') }}</textarea>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ações -->
+    <div style="display:flex; gap: 0.75rem;">
+        <button type="submit" class="btn btn-primary">💾 Salvar</button>
+        <a href="/agencias" class="btn btn-outline">Cancelar</a>
+    </div>
+
+</form>
+
+{% endblock %}

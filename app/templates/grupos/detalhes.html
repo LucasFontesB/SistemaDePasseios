@@ -1,0 +1,123 @@
+{% extends "layouts/base.html" %}
+{% block title %}{{ grupo.nome }} — Gestão de Passeios{% endblock %}
+
+{% block extra_css %}
+<style>
+.grupo-header {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1.25rem;
+    display: grid;
+    grid-template-columns: 2fr repeat(4, 1fr);
+    gap: 1.25rem;
+    align-items: center;
+}
+.grupo-header-item label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    display: block;
+    margin-bottom: 0.2rem;
+}
+.grupo-header-item span {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text);
+}
+.grupo-header-item .destaque { color: var(--primary); font-size: 18px; }
+.grupo-tabs {
+    display: flex;
+    gap: 0.25rem;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 1.25rem;
+}
+.grupo-tab {
+    padding: 0.75rem 1.1rem;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-decoration: none;
+    border-bottom: 2px solid transparent;
+}
+.grupo-tab.active {
+    color: var(--primary);
+    border-bottom-color: var(--primary);
+}
+.grupo-tab.disabled {
+    color: #C9CED6;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <div>
+        <div class="breadcrumb">
+            <a href="/dashboard">Dashboard</a>
+            <span class="breadcrumb-sep">›</span>
+            <a href="/grupos">Grupos</a>
+            <span class="breadcrumb-sep">›</span>
+            <span>{{ grupo.codigo }}</span>
+        </div>
+        <h1 class="page-title">{{ grupo.nome }}</h1>
+    </div>
+    <a href="/grupos/{{ grupo.id }}/editar" class="btn btn-outline">✏️ Editar</a>
+</div>
+
+<!-- Cabeçalho fixo -->
+<div class="grupo-header">
+    <div class="grupo-header-item">
+        <label>Grupo</label>
+        <span>{{ grupo.codigo }} — {{ grupo.nome }}</span>
+    </div>
+    <div class="grupo-header-item">
+        <label>Status</label>
+        <span><span class="badge badge-{{ grupo.status.lower() }}">{{ grupo_status_labels[grupo.status] }}</span></span>
+    </div>
+    <div class="grupo-header-item">
+        <label>Período</label>
+        <span>{{ grupo.data_entrada.strftime("%d/%m/%Y") }} — {{ grupo.data_saida.strftime("%d/%m/%Y") }}</span>
+    </div>
+    <div class="grupo-header-item">
+        <label>Valor Total</label>
+        <span class="destaque">R$ {{ "%.2f"|format(grupo.valor_total_sistema)|replace(".", ",") }}</span>
+    </div>
+    <div class="grupo-header-item">
+        <label>Valor Pago / Saldo</label>
+        <span>R$ {{ "%.2f"|format(grupo.valor_pago)|replace(".", ",") }} / R$ {{ "%.2f"|format(grupo.saldo)|replace(".", ",") }}</span>
+    </div>
+</div>
+
+<!-- Navegação por abas -->
+<div class="grupo-tabs">
+    <a href="/grupos/{{ grupo.id }}?tab=dados" class="grupo-tab {% if tab == 'dados' %}active{% endif %}">Dados Gerais</a>
+    <a href="{% if 'orcamentos' in tabs_ativas %}/grupos/{{ grupo.id }}?tab=orcamentos{% else %}#{% endif %}" class="grupo-tab {% if tab == 'orcamentos' %}active{% endif %} {% if 'orcamentos' not in tabs_ativas %}disabled{% endif %}">Orçamentos</a>
+    <a href="{% if 'pagamentos' in tabs_ativas %}/grupos/{{ grupo.id }}?tab=pagamentos{% else %}#{% endif %}" class="grupo-tab {% if tab == 'pagamentos' %}active{% endif %} {% if 'pagamentos' not in tabs_ativas %}disabled{% endif %}">Pagamentos</a>
+    <a href="{% if 'roomlist' in tabs_ativas %}/grupos/{{ grupo.id }}?tab=roomlist{% else %}#{% endif %}" class="grupo-tab {% if tab == 'roomlist' %}active{% endif %} {% if 'roomlist' not in tabs_ativas %}disabled{% endif %}">Roomlist</a>
+    <a href="{% if 'anexos' in tabs_ativas %}/grupos/{{ grupo.id }}?tab=anexos{% else %}#{% endif %}" class="grupo-tab {% if tab == 'anexos' %}active{% endif %} {% if 'anexos' not in tabs_ativas %}disabled{% endif %}">Anexos</a>
+    <a href="{% if 'atividade' in tabs_ativas %}/grupos/{{ grupo.id }}?tab=atividade{% else %}#{% endif %}" class="grupo-tab {% if tab == 'atividade' %}active{% endif %} {% if 'atividade' not in tabs_ativas %}disabled{% endif %}">Atividade</a>
+</div>
+
+{% if tab == 'dados' %}
+    {% include "grupos/tabs/dados_gerais.html" %}
+{% elif tab == 'orcamentos' %}
+    {% include "grupos/tabs/orcamentos.html" %}
+{% elif tab == 'pagamentos' %}
+    {% include "grupos/tabs/pagamentos.html" %}
+{% elif tab == 'roomlist' %}
+    {% include "grupos/tabs/roomlist.html" %}
+{% elif tab == 'anexos' %}
+    {% include "grupos/tabs/anexos.html" %}
+{% elif tab == 'atividade' %}
+    {% include "grupos/tabs/atividade.html" %}
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,55 @@
+{% extends "layouts/base.html" %}
+{% block title %}Guias — Gestão de Passeios{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <div>
+        <div class="breadcrumb">
+            <a href="/dashboard">Dashboard</a>
+            <span class="breadcrumb-sep">›</span>
+            <span>Guias</span>
+        </div>
+        <h1 class="page-title">Guias</h1>
+    </div>
+    <a href="/guias/novo" class="btn btn-primary">➕ Novo Guia</a>
+</div>
+
+<div class="table-wrapper">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Nome</th>
+                <th>Cadastur</th>
+                <th>Telefone</th>
+                <th>E-mail</th>
+                <th>% Comissão Padrão</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if guias %}
+                {% for g in guias %}
+                <tr>
+                    <td><strong>{{ g.nome }}</strong></td>
+                    <td class="text-muted">{{ g.cadastur or "—" }}</td>
+                    <td class="text-muted">{{ g.telefone or "—" }}</td>
+                    <td class="text-muted">{{ g.email or "—" }}</td>
+                    <td>{{ "%.2f"|format(g.percentual_comissao_padrao)|replace(".", ",") }}%</td>
+                    <td style="white-space:nowrap;">
+                        <a href="/guias/{{ g.id }}/editar" class="btn btn-outline btn-sm">Editar</a>
+                        <form method="post" action="/guias/{{ g.id }}/desativar" style="display:inline;">
+                            <button type="submit" class="btn btn-danger btn-sm"
+                                onclick="return confirm('Desativar {{ g.nome }}?')">Desativar</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr><td colspan="6" class="table-empty">Nenhum guia cadastrado.</td></tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}

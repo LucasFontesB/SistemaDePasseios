@@ -125,8 +125,12 @@ Permissões:
 
 * Dashboard
 * Vendas
+* Grupos (ver docs/GRUPOS.md) — inclui os cadastros de Agências e Guias.
+  Exceção: o cancelamento de um grupo é restrito a ADMIN e GERENCIA
+  (RN-G010).
 
-Sem acesso administrativo.
+Sem acesso administrativo, a Cadastros (Passeios/Tipos de Passeio/
+Embarcações) nem a Relatórios.
 
 ---
 

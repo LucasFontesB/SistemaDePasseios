@@ -1,0 +1,144 @@
+<style>
+.orcamento-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    margin-bottom: 1rem;
+}
+.orcamento-card-header {
+    padding: 0.85rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+    border-radius: var(--radius) var(--radius) 0 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+.orcamento-card-body {
+    padding: 1.25rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 1rem;
+}
+.orcamento-item label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    display: block;
+    margin-bottom: 0.2rem;
+}
+.orcamento-item span {
+    font-size: 14px;
+    color: var(--text);
+    font-weight: 500;
+}
+.orcamento-valor { color: var(--success) !important; font-size: 18px !important; }
+.orcamento-actions {
+    padding: 0 1.25rem 1.25rem;
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+.desatualizado-banner {
+    background: #fff3cd;
+    border: 1px solid #ffe08a;
+    color: #856404;
+    border-radius: var(--radius);
+    padding: 0.85rem 1.25rem;
+    margin-bottom: 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+</style>
+
+{% set ultima = orcamentos[0] if orcamentos else None %}
+
+{% if ultima and ultima.desatualizado %}
+<div class="desatualizado-banner">
+    <div>
+        ⚠️ O grupo mudou desde a versão {{ ultima.versao }} deste orçamento — o documento enviado não reflete mais os dados atuais.
+    </div>
+</div>
+{% endif %}
+
+<!-- Gerar novo orçamento -->
+<div class="detail-section" style="background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 1.25rem;">
+    <div class="detail-section-title" style="padding: 0.85rem 1.25rem; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); border-bottom: 1px solid var(--border); background: var(--bg); border-radius: var(--radius) var(--radius) 0 0;">
+        Gerar Novo Orçamento
+    </div>
+    <div style="padding: 1.25rem;">
+        <form method="post" action="/grupos/{{ grupo.id }}/orcamentos">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                <div class="form-group" style="margin-bottom:0;">
+                    <label class="form-label">Motivo (opcional)</label>
+                    <input type="text" name="motivo" class="form-control" placeholder="Ex: desistência de 3 quartos, entrada de 50%...">
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                    <label class="form-label">Validade da Proposta (opcional)</label>
+                    <input type="date" name="validade" class="form-control">
+                </div>
+            </div>
+            <div class="form-group" style="margin-top:1rem;">
+                <label class="form-label">Condições Adicionais (opcional)</label>
+                <textarea name="condicoes" class="form-control" rows="2" placeholder="Condições comerciais a exibir no PDF..."></textarea>
+            </div>
+            <button type="submit" class="btn {% if ultima and ultima.desatualizado %}btn-primary{% else %}btn-outline{% endif %}" style="margin-top:0.75rem;">
+                📄 Gerar Novo Orçamento{% if orcamentos %} (versão {{ orcamentos[0].versao + 1 }}){% endif %}
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Versões -->
+{% if orcamentos %}
+    {% for o in orcamentos %}
+    <div class="orcamento-card">
+        <div class="orcamento-card-header">
+            <div>
+                <strong>Versão {{ o.versao }}</strong>
+                <span class="badge badge-{{ o.status.lower() }}">{{ orcamento_status_labels[o.status] }}</span>
+                {% if o.desatualizado %}<span class="badge badge-cancelado">Desatualizado</span>{% endif %}
+            </div>
+            <div class="text-muted" style="font-size:12px;">
+                Gerado por {{ o.usuario.nome.split()[0] }} em {{ o.criado_em.strftime("%d/%m/%Y %H:%M") }}
+            </div>
+        </div>
+        <div class="orcamento-card-body">
+            <div class="orcamento-item"><label>Período</label><span>{{ o.noites }} noite(s)</span></div>
+            <div class="orcamento-item"><label>Hóspedes</label><span>{{ o.qtd_hospedes }}</span></div>
+            <div class="orcamento-item"><label>Apartamentos</label><span>{{ o.apartamentos_ocupados }}{% if o.qtd_apartamentos_cortesia %} ({{ o.qtd_apartamentos_cortesia }} cortesia){% endif %}</span></div>
+            <div class="orcamento-item"><label>Valor Total</label><span class="orcamento-valor">R$ {{ "%.2f"|format(o.valor_total_sistema)|replace(".", ",") }}</span></div>
+            <div class="orcamento-item"><label>Valor Pago (na época)</label><span>R$ {{ "%.2f"|format(o.valor_pago_snapshot)|replace(".", ",") }}</span></div>
+            <div class="orcamento-item"><label>Saldo (na época)</label><span>R$ {{ "%.2f"|format(o.saldo_snapshot)|replace(".", ",") }}</span></div>
+            {% if o.validade %}<div class="orcamento-item"><label>Validade</label><span>{{ o.validade.strftime("%d/%m/%Y") }}</span></div>{% endif %}
+            {% if o.motivo %}<div class="orcamento-item" style="grid-column: 1 / -1;"><label>Motivo</label><span>{{ o.motivo }}</span></div>{% endif %}
+        </div>
+        <div class="orcamento-actions">
+            <a href="/grupos/{{ grupo.id }}/orcamentos/{{ o.id }}/pdf" target="_blank" class="btn btn-outline btn-sm">🖨️ Gerar PDF</a>
+            {% if o.status == 'RASCUNHO' %}
+            <form method="post" action="/grupos/{{ grupo.id }}/orcamentos/{{ o.id }}/enviar" style="margin:0;">
+                <button type="submit" class="btn btn-outline btn-sm">Marcar como Enviado</button>
+            </form>
+            {% endif %}
+            {% if o.status not in ('APROVADO', 'RECUSADO') %}
+            <form method="post" action="/grupos/{{ grupo.id }}/orcamentos/{{ o.id }}/aprovar" style="margin:0;">
+                <button type="submit" class="btn btn-primary btn-sm" onclick="return confirm('Aprovar esta versão? Os valores serão copiados para o grupo.')">✓ Aprovar</button>
+            </form>
+            <form method="post" action="/grupos/{{ grupo.id }}/orcamentos/{{ o.id }}/recusar" style="margin:0;">
+                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Recusar esta versão?')">✕ Recusar</button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+{% else %}
+    <p class="text-muted" style="font-size:14px;">Nenhum orçamento gerado ainda para este grupo.</p>
+{% endif %}

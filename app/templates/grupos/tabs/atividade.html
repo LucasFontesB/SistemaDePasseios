@@ -1,0 +1,79 @@
+<style>
+.detail-section {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 1.25rem;
+    box-shadow: var(--shadow);
+}
+.detail-section-title {
+    padding: 0.85rem 1.25rem;
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+    border-radius: var(--radius) var(--radius) 0 0;
+}
+.timeline-item {
+    display: flex;
+    gap: 0.75rem;
+    padding: 0.75rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+}
+.timeline-item:last-child { border-bottom: none; }
+.timeline-icon { font-size: 16px; }
+.timeline-body { flex: 1; }
+.timeline-desc { font-size: 14px; color: var(--text); }
+.timeline-meta { font-size: 12px; color: var(--text-muted); margin-top: 0.15rem; }
+</style>
+
+<div class="page-header" style="margin-bottom: 1rem;">
+    <div></div>
+    {% if apenas_comentarios %}
+        <a href="/grupos/{{ grupo.id }}?tab=atividade" class="btn btn-outline btn-sm">Mostrar tudo</a>
+    {% else %}
+        <a href="/grupos/{{ grupo.id }}?tab=atividade&filtro=comentarios" class="btn btn-outline btn-sm">Mostrar apenas comentários</a>
+    {% endif %}
+</div>
+
+<!-- Novo comentário -->
+<div class="detail-section">
+    <div class="detail-section-title">Novo Comentário</div>
+    <div style="padding: 1.25rem;">
+        <form method="post" action="/grupos/{{ grupo.id }}/comentarios">
+            <div class="form-group">
+                <textarea name="texto" class="form-control" rows="2" placeholder="Escreva um comentário..." required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Comentar</button>
+        </form>
+    </div>
+</div>
+
+<!-- Linha do tempo -->
+<div class="detail-section">
+    <div class="detail-section-title">{% if apenas_comentarios %}Comentários{% else %}Linha do Tempo{% endif %}</div>
+    <div>
+        {% if timeline %}
+            {% for evento in timeline %}
+            <div class="timeline-item">
+                <div class="timeline-icon">{% if evento.tipo == 'comentario' %}💬{% else %}✏️{% endif %}</div>
+                <div class="timeline-body">
+                    {% if evento.identificador %}
+                        <div class="timeline-desc"><strong>{{ evento.identificador }}</strong> — {{ evento.descricao }}</div>
+                    {% else %}
+                        <div class="timeline-desc">{{ evento.descricao }}</div>
+                    {% endif %}
+                    <div class="timeline-meta">{{ evento.usuario_nome }} • {{ evento.criado_em.strftime("%d/%m/%Y %H:%M:%S") }}</div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p class="text-muted" style="padding: 1.25rem; margin:0; font-size:14px;">
+                {% if apenas_comentarios %}Nenhum comentário registrado.{% else %}Nenhuma atividade registrada.{% endif %}
+            </p>
+        {% endif %}
+    </div>
+</div>

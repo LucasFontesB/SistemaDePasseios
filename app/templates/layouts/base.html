@@ -68,6 +68,21 @@
             </a>
         </div>
 
+        {% if usuario.perfil in ['ADMIN', 'GERENCIA', 'RECEPCAO'] %}
+        <div class="sidebar-section">
+            <div class="sidebar-label">Grupos</div>
+            <a href="/grupos" class="sidebar-link {% if active == 'grupos' %}active{% endif %}">
+                <span class="icon">🏨</span> Grupos
+            </a>
+            <a href="/agencias" class="sidebar-link {% if active == 'agencias' %}active{% endif %}">
+                <span class="icon">🏢</span> Agências
+            </a>
+            <a href="/guias" class="sidebar-link {% if active == 'guias' %}active{% endif %}">
+                <span class="icon">🧑‍✈️</span> Guias
+            </a>
+        </div>
+        {% endif %}
+
         {% if usuario.perfil in ['ADMIN', 'GERENCIA'] %}
         <div class="sidebar-section">
             <div class="sidebar-label">Cadastros</div>
@@ -79,6 +94,9 @@
             </a>
             <a href="/embarcacoes" class="sidebar-link {% if active == 'embarcacoes' %}active{% endif %}">
                 <span class="icon">🚢</span> Embarcações
+            </a>
+            <a href="/tipos-apartamento" class="sidebar-link {% if active == 'tipos_apartamento' %}active{% endif %}">
+                <span class="icon">🛏️</span> Tipos de Apartamento
             </a>
         </div>
 

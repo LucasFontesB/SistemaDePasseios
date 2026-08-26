@@ -30,6 +30,9 @@ pydantic-settings==2.6.1
 # Geração de PDF
 reportlab==4.2.5
 
+# Geração de planilhas Excel (.xlsx)
+openpyxl==3.1.5
+
 # Qualidade de código
 black==24.10.0
 isort==5.13.2

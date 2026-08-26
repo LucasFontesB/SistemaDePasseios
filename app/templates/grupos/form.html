@@ -1,0 +1,432 @@
+{% extends "layouts/base.html" %}
+{% block title %}{% if grupo %}Editar Grupo{% else %}Novo Grupo{% endif %} — Gestão de Passeios{% endblock %}
+
+{% block extra_css %}
+<style>
+.form-section {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 1.25rem;
+    box-shadow: var(--shadow);
+}
+.form-section-title {
+    padding: 0.85rem 1.25rem;
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+    border-radius: var(--radius) var(--radius) 0 0;
+}
+.form-section-body {
+    padding: 1.25rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+.form-section-body.full { grid-template-columns: 1fr; }
+.calc-hint {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 0.3rem;
+}
+.quick-add-link {
+    font-size: 12px;
+    font-weight: 600;
+    margin-left: 0.5rem;
+    text-decoration: none;
+}
+.quick-modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+}
+.quick-modal-overlay.open { display: flex; }
+.quick-modal {
+    background: var(--white);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    width: 100%;
+    max-width: 480px;
+    max-height: 85vh;
+    overflow-y: auto;
+}
+.quick-modal-header {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.quick-modal-header h3 { margin: 0; font-size: 15px; }
+.quick-modal-body { padding: 1.25rem; display: flex; flex-direction: column; gap: 0.85rem; }
+.quick-modal-footer { padding: 1rem 1.25rem; border-top: 1px solid var(--border); display: flex; gap: 0.5rem; }
+.quick-modal-close { background: none; border: none; font-size: 18px; cursor: pointer; color: var(--text-muted); }
+.quick-modal-erros { color: var(--danger); font-size: 12px; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+{% set is_edit = grupo is not none %}
+
+<div class="page-header">
+    <div>
+        <div class="breadcrumb">
+            <a href="/dashboard">Dashboard</a>
+            <span class="breadcrumb-sep">›</span>
+            <a href="/grupos">Grupos</a>
+            <span class="breadcrumb-sep">›</span>
+            <span>{% if is_edit %}Editar{% else %}Novo{% endif %}</span>
+        </div>
+        <h1 class="page-title">{% if is_edit %}Editar Grupo #{{ grupo.codigo }}{% else %}Novo Grupo{% endif %}</h1>
+    </div>
+</div>
+
+{% if erros %}
+<div class="alert alert-danger">
+    {% for erro in erros %}<div>• {{ erro }}</div>{% endfor %}
+</div>
+{% endif %}
+
+<form method="post" action="{% if is_edit %}/grupos/{{ grupo.id }}/editar{% else %}/grupos{% endif %}">
+
+    {% macro val(campo, default='') %}
+        {%- if form_values is defined and form_values[campo] is defined -%}
+            {{ form_values[campo] }}
+        {%- elif is_edit and grupo[campo] is defined and grupo[campo] is not none -%}
+            {{ grupo[campo] }}
+        {%- else -%}
+            {{ default }}
+        {%- endif -%}
+    {% endmacro %}
+
+    <!-- Identificação -->
+    <div class="form-section">
+        <div class="form-section-title">Identificação</div>
+        <div class="form-section-body">
+            <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">Nome do Grupo *</label>
+                <input type="text" name="nome" class="form-control" value="{{ val('nome') }}" placeholder="Ex: Excursão São Miguel dos Milagres" required>
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">Responsável</label>
+                <input type="text" name="responsavel" class="form-control" value="{{ val('responsavel') }}">
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">Telefone</label>
+                <input type="text" name="telefone" class="form-control" value="{{ val('telefone') }}" placeholder="(00) 00000-0000">
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">E-mail</label>
+                <input type="email" name="email" class="form-control" value="{{ val('email') }}">
+            </div>
+        </div>
+    </div>
+
+    <!-- Intermediário -->
+    <div class="form-section">
+        <div class="form-section-title">Intermediário</div>
+        <div class="form-section-body">
+            <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">Agência <a href="#" class="quick-add-link" onclick="abrirModalRapido('agencia'); return false;">+ Nova Agência</a></label>
+                <select name="agencia_id" id="agencia_id" class="form-control">
+                    <option value="">Nenhuma (grupo direto)</option>
+                    {% for a in agencias %}
+                    <option value="{{ a.id }}"
+                        {% if (form_values is defined and form_values.agencia_id == a.id|string) or (is_edit and grupo.agencia_id == a.id) %}selected{% endif %}>
+                        {{ a.nome }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">Guia <a href="#" class="quick-add-link" onclick="abrirModalRapido('guia'); return false;">+ Novo Guia</a></label>
+                <select name="guia_id" id="guia_id" class="form-control">
+                    <option value="">Nenhum (grupo direto)</option>
+                    {% for g in guias %}
+                    <option value="{{ g.id }}"
+                        {% if (form_values is defined and form_values.guia_id == g.id|string) or (is_edit and grupo.guia_id == g.id) %}selected{% endif %}>
+                        {{ g.nome }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Período e Ocupação -->
+    <div class="form-section">
+        <div class="form-section-title">Período e Ocupação</div>
+        <div class="form-section-body">
+            <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">Data de Entrada *</label>
+                <input type="date" name="data_entrada" class="form-control"
+                    value="{% if is_edit %}{{ grupo.data_entrada.isoformat() }}{% elif form_values is defined %}{{ form_values.data_entrada }}{% endif %}" required>
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">Data de Saída *</label>
+                <input type="date" name="data_saida" class="form-control"
+                    value="{% if is_edit %}{{ grupo.data_saida.isoformat() }}{% elif form_values is defined %}{{ form_values.data_saida }}{% endif %}" required>
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">Quantidade de Hóspedes</label>
+                <input type="number" name="qtd_hospedes" class="form-control" value="{{ val('qtd_hospedes', 0) }}" min="0">
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">Apartamentos de Cortesia</label>
+                <input type="number" name="qtd_apartamentos_cortesia" class="form-control" value="{{ val('qtd_apartamentos_cortesia', 0) }}" min="0">
+            </div>
+            {% if not is_edit %}
+            <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">Apartamentos Previstos</label>
+                <input type="number" name="qtd_apartamentos_prevista" class="form-control" value="{{ val('qtd_apartamentos_prevista', '') }}" min="0" placeholder="Estimativa inicial">
+                <div class="calc-hint">Só referência de planejamento (RN-G028) — a composição real por tipo é sempre a fonte de verdade.</div>
+            </div>
+            {% else %}
+            <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">Apartamentos Faturados</label>
+                <input type="text" class="form-control" value="{{ grupo.qtd_apartamentos }}" disabled>
+                <div class="calc-hint">Calculado a partir da composição de tarifa por tipo — edite na tela de detalhes.</div>
+            </div>
+            {% if grupo.qtd_apartamentos_prevista %}
+            <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">Apartamentos Previstos</label>
+                <input type="text" class="form-control" value="{{ grupo.qtd_apartamentos_prevista }}" disabled>
+                <div class="calc-hint">Definido na criação, não editável depois.</div>
+            </div>
+            {% endif %}
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Prazos -->
+    <div class="form-section">
+        <div class="form-section-title">Prazos</div>
+        <div class="form-section-body">
+            <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">Prazo Deadline</label>
+                <input type="date" name="prazo_deadline" class="form-control"
+                    value="{% if is_edit and grupo.prazo_deadline %}{{ grupo.prazo_deadline.isoformat() }}{% elif form_values is defined %}{{ form_values.prazo_deadline }}{% endif %}">
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">Prazo Roomlist</label>
+                <input type="date" name="prazo_roomlist" class="form-control"
+                    value="{% if is_edit and grupo.prazo_roomlist %}{{ grupo.prazo_roomlist.isoformat() }}{% elif form_values is defined %}{{ form_values.prazo_roomlist }}{% endif %}">
+            </div>
+            <div class="calc-hint" style="grid-column: 1 / -1;">Informativos e opcionais — não afetam valor, quantidade nem a verificação de divergência do orçamento (RN-G021).</div>
+        </div>
+    </div>
+
+    {% if not is_edit %}
+    <div class="alert alert-info" style="margin-bottom:1.25rem;">
+        A composição de tarifa por tipo de apartamento é montada na tela de detalhes, depois de salvar o grupo.
+    </div>
+    {% endif %}
+
+    <!-- Observações -->
+    <div class="form-section">
+        <div class="form-section-title">Observações</div>
+        <div class="form-section-body full">
+            <div class="form-group" style="margin-bottom:0;">
+                <textarea name="observacao" class="form-control" rows="3" placeholder="Observações sobre o grupo...">{{ val('observacao') }}</textarea>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ações -->
+    <div style="display:flex; gap: 0.75rem;">
+        <button type="submit" class="btn btn-primary">💾 Salvar</button>
+        <a href="{% if is_edit %}/grupos/{{ grupo.id }}{% else %}/grupos{% endif %}" class="btn btn-outline">Cancelar</a>
+    </div>
+
+</form>
+
+<!-- Modal de criação rápida de Agência (RN-G030) -->
+<div class="quick-modal-overlay" id="modal-agencia">
+    <div class="quick-modal">
+        <div class="quick-modal-header">
+            <h3>Nova Agência</h3>
+            <button type="button" class="quick-modal-close" onclick="fecharModalRapido('agencia')">✕</button>
+        </div>
+        <div class="quick-modal-body">
+            <div class="quick-modal-erros" id="erros-agencia"></div>
+            <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">Nome *</label>
+                <input type="text" class="form-control" id="qa-nome" placeholder="Razão social">
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">Nome Fantasia</label>
+                <input type="text" class="form-control" id="qa-nome_fantasia">
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">CNPJ</label>
+                <input type="text" class="form-control" id="qa-cnpj" placeholder="00.000.000/0000-00">
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">Pessoa de Contato</label>
+                <input type="text" class="form-control" id="qa-contato">
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">Telefone</label>
+                <input type="text" class="form-control" id="qa-telefone" placeholder="(00) 00000-0000">
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">E-mail</label>
+                <input type="email" class="form-control" id="qa-email">
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">% Comissão Padrão</label>
+                <input type="number" class="form-control" id="qa-percentual_comissao_padrao" min="0" max="100" step="0.01" placeholder="0,00">
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">Observação</label>
+                <textarea class="form-control" id="qa-observacao" rows="2"></textarea>
+            </div>
+        </div>
+        <div class="quick-modal-footer">
+            <button type="button" class="btn btn-primary" onclick="salvarModalRapido('agencia')">💾 Salvar e Selecionar</button>
+            <button type="button" class="btn btn-outline" onclick="fecharModalRapido('agencia')">Cancelar</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de criação rápida de Guia (RN-G030) -->
+<div class="quick-modal-overlay" id="modal-guia">
+    <div class="quick-modal">
+        <div class="quick-modal-header">
+            <h3>Novo Guia</h3>
+            <button type="button" class="quick-modal-close" onclick="fecharModalRapido('guia')">✕</button>
+        </div>
+        <div class="quick-modal-body">
+            <div class="quick-modal-erros" id="erros-guia"></div>
+            <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">Nome *</label>
+                <input type="text" class="form-control" id="qg-nome" placeholder="Nome completo">
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">CPF</label>
+                <input type="text" class="form-control" id="qg-cpf" placeholder="000.000.000-00">
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">Cadastur</label>
+                <input type="text" class="form-control" id="qg-cadastur">
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">Telefone</label>
+                <input type="text" class="form-control" id="qg-telefone" placeholder="(00) 00000-0000">
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">E-mail</label>
+                <input type="email" class="form-control" id="qg-email">
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">% Comissão Padrão</label>
+                <input type="number" class="form-control" id="qg-percentual_comissao_padrao" min="0" max="100" step="0.01" placeholder="0,00">
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">Observação</label>
+                <textarea class="form-control" id="qg-observacao" rows="2"></textarea>
+            </div>
+        </div>
+        <div class="quick-modal-footer">
+            <button type="button" class="btn btn-primary" onclick="salvarModalRapido('guia')">💾 Salvar e Selecionar</button>
+            <button type="button" class="btn btn-outline" onclick="fecharModalRapido('guia')">Cancelar</button>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // RN-G030: cadastro rápido de agência/guia sem sair do formulário do
+    // grupo — envia via fetch (X-Requested-With) para as MESMAS rotas
+    // /agencias e /guias já usadas pelo cadastro completo, sem navegação
+    // de página cheia, então nada do que já foi digitado no grupo se perde.
+
+    var QUICK_CONFIG = {
+        agencia: {
+            url: '/agencias',
+            selectId: 'agencia_id',
+            prefix: 'qa',
+            campos: ['nome', 'nome_fantasia', 'cnpj', 'contato', 'telefone', 'email', 'percentual_comissao_padrao', 'observacao'],
+        },
+        guia: {
+            url: '/guias',
+            selectId: 'guia_id',
+            prefix: 'qg',
+            campos: ['nome', 'cpf', 'cadastur', 'telefone', 'email', 'percentual_comissao_padrao', 'observacao'],
+        },
+    };
+
+    function abrirModalRapido(tipo) {
+        document.getElementById('erros-' + tipo).textContent = '';
+        document.getElementById('modal-' + tipo).classList.add('open');
+    }
+
+    function fecharModalRapido(tipo) {
+        document.getElementById('modal-' + tipo).classList.remove('open');
+    }
+
+    function salvarModalRapido(tipo) {
+        var cfg = QUICK_CONFIG[tipo];
+        var errosEl = document.getElementById('erros-' + tipo);
+        errosEl.textContent = '';
+
+        var nomeInput = document.getElementById(cfg.prefix + '-nome');
+        if (!nomeInput.value.trim()) {
+            errosEl.textContent = 'Nome é obrigatório.';
+            return;
+        }
+
+        var body = new URLSearchParams();
+        cfg.campos.forEach(function (campo) {
+            var el = document.getElementById(cfg.prefix + '-' + campo);
+            body.append(campo, el ? el.value : '');
+        });
+
+        fetch(cfg.url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+            body: body.toString(),
+        })
+            .then(function (resp) {
+                return resp.json().then(function (data) {
+                    return { status: resp.status, data: data };
+                });
+            })
+            .then(function (result) {
+                if (result.status >= 400) {
+                    errosEl.textContent = (result.data.erros || ['Erro ao salvar.']).join(' ');
+                    return;
+                }
+                var select = document.getElementById(cfg.selectId);
+                var option = document.createElement('option');
+                option.value = result.data.id;
+                option.textContent = result.data.nome;
+                option.selected = true;
+                select.appendChild(option);
+
+                cfg.campos.forEach(function (campo) {
+                    var el = document.getElementById(cfg.prefix + '-' + campo);
+                    if (el) el.value = '';
+                });
+                fecharModalRapido(tipo);
+            })
+            .catch(function () {
+                errosEl.textContent = 'Não foi possível salvar agora. Tente novamente.';
+            });
+    }
+</script>
+{% endblock %}

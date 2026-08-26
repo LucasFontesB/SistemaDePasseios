@@ -332,6 +332,19 @@
 .badge-cancelado            { background: #f8d7da; color: #58151c; }
 .badge-reembolsado          { background: #ffe5d0; color: #7d3a00; }
 
+/* Status de grupo (Módulo de Grupos) */
+.badge-prospeccao           { background: #e9ecef; color: #495057; }
+.badge-orcamento_enviado    { background: #fff3cd; color: #856404; }
+.badge-em_negociacao        { background: #ffe5d0; color: #7d3a00; }
+.badge-hospedado            { background: #d1f2eb; color: #0e6655; }
+.badge-perdido              { background: #f8d7da; color: #58151c; }
+
+/* Status de orçamento (Módulo de Grupos) */
+.badge-rascunho             { background: #e9ecef; color: #495057; }
+.badge-enviado              { background: #fff3cd; color: #856404; }
+.badge-aprovado             { background: #d1e7dd; color: #0a3622; }
+.badge-recusado             { background: #f8d7da; color: #58151c; }
+
 /* =============================================================================
    Pendências
    ============================================================================= */

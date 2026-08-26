@@ -1,0 +1,298 @@
+<style>
+.detail-section {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 1.25rem;
+    box-shadow: var(--shadow);
+}
+.detail-section-title {
+    padding: 0.85rem 1.25rem;
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+    border-radius: var(--radius) var(--radius) 0 0;
+}
+.detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1.25rem;
+    padding: 1.25rem;
+}
+.detail-item label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    display: block;
+    margin-bottom: 0.2rem;
+}
+.detail-item span {
+    font-size: 15px;
+    color: var(--text);
+    font-weight: 500;
+}
+.valor-destaque    { font-size: 20px !important; color: var(--success) !important; }
+.comissao-destaque { font-size: 20px !important; color: var(--primary) !important; }
+.manual-aviso {
+    font-size: 12px;
+    color: #856404;
+    background: #fff3cd;
+    border-radius: 6px;
+    padding: 0.3rem 0.6rem;
+    display: inline-block;
+    margin-top: 0.3rem;
+}
+.apto-row-form {
+    padding: 1rem 1.25rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 0.75rem;
+    align-items: end;
+}
+.apto-actions {
+    padding: 0 1.25rem 1rem;
+    display: flex;
+    gap: 0.5rem;
+}
+.manual-form {
+    display: flex;
+    gap: 0.4rem;
+    margin-top: 0.4rem;
+    align-items: center;
+}
+.manual-form input { width: 130px; }
+</style>
+
+<div style="display: grid; grid-template-columns: 1fr 320px; gap: 1.5rem; align-items: start;">
+
+    <div>
+
+        <!-- Alertas (RN-G028/RN-G029) -->
+        {% if alertas %}
+        <div class="alert alert-warning" style="margin-bottom:1.25rem;">
+            {% for a in alertas %}<div>⚠️ {{ a }}</div>{% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Identificação -->
+        <div class="detail-section">
+            <div class="detail-section-title">Identificação</div>
+            <div class="detail-grid">
+                <div class="detail-item"><label>Código</label><span>{{ grupo.codigo }}</span></div>
+                <div class="detail-item"><label>Nome</label><span>{{ grupo.nome }}</span></div>
+                <div class="detail-item"><label>Responsável</label><span>{{ grupo.responsavel or "—" }}</span></div>
+                <div class="detail-item"><label>Telefone</label><span>{{ grupo.telefone or "—" }}</span></div>
+                <div class="detail-item"><label>E-mail</label><span>{{ grupo.email or "—" }}</span></div>
+            </div>
+        </div>
+
+        <!-- Intermediário -->
+        <div class="detail-section">
+            <div class="detail-section-title">Intermediário</div>
+            <div class="detail-grid">
+                <div class="detail-item"><label>Agência</label><span>{{ grupo.agencia.nome if grupo.agencia else "—" }}</span></div>
+                <div class="detail-item"><label>Guia</label><span>{{ grupo.guia.nome if grupo.guia else "—" }}</span></div>
+                {% if not grupo.agencia and not grupo.guia %}
+                <div class="detail-item"><label>Tipo</label><span>Grupo direto (sem intermediário)</span></div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Período e Ocupação -->
+        <div class="detail-section">
+            <div class="detail-section-title">Período e Ocupação</div>
+            <div class="detail-grid">
+                <div class="detail-item"><label>Data de Entrada</label><span>{{ grupo.data_entrada.strftime("%d/%m/%Y") }}</span></div>
+                <div class="detail-item"><label>Data de Saída</label><span>{{ grupo.data_saida.strftime("%d/%m/%Y") }}</span></div>
+                <div class="detail-item"><label>Noites</label><span>{{ grupo.noites }}</span></div>
+                <div class="detail-item"><label>Hóspedes</label><span>{{ grupo.qtd_hospedes }}</span></div>
+                <div class="detail-item"><label>Apartamentos Faturados</label><span>{{ grupo.qtd_apartamentos }}</span></div>
+                <div class="detail-item"><label>Apartamentos de Cortesia</label><span>{{ grupo.qtd_apartamentos_cortesia }}</span></div>
+                <div class="detail-item"><label>Total Ocupado</label><span>{{ grupo.apartamentos_ocupados }}</span></div>
+            </div>
+        </div>
+
+        <!-- Tarifa por Tipo de Apartamento -->
+        <div class="detail-section">
+            <div class="detail-section-title">Tarifa por Tipo de Apartamento</div>
+
+            {% if apartamentos %}
+                {% for l in apartamentos %}
+                <div style="border-bottom: 1px solid var(--border);">
+                    <form method="post" action="/grupos/{{ grupo.id }}/apartamentos/{{ l.id }}/editar">
+                        <div class="apto-row-form">
+                            <div class="form-group" style="margin-bottom:0;">
+                                <label class="form-label">Tipo</label>
+                                <input type="text" class="form-control" value="{{ l.tipo_apartamento.nome }}" disabled>
+                            </div>
+                            <div class="form-group" style="margin-bottom:0;">
+                                <label class="form-label">Quantidade</label>
+                                <input type="number" name="quantidade" class="form-control" value="{{ l.quantidade }}" min="1" required>
+                            </div>
+                            <div class="form-group" style="margin-bottom:0;">
+                                <label class="form-label">Diária Net</label>
+                                <input type="number" name="valor_diaria_net" class="form-control" value="{{ l.valor_diaria_net }}" min="0" step="0.01">
+                            </div>
+                            <div class="form-group" style="margin-bottom:0;">
+                                <label class="form-label">Diária Sistema</label>
+                                <input type="number" name="valor_diaria_sistema" class="form-control" value="{{ l.valor_diaria_sistema }}" min="0" step="0.01">
+                            </div>
+                            <div class="form-group" style="margin-bottom:0;">
+                                <label class="form-label">Subtotal Net</label>
+                                <input type="text" class="form-control" value="R$ {{ '%.2f'|format(l.subtotal_net(grupo.noites))|replace('.', ',') }}" disabled>
+                            </div>
+                            <div class="form-group" style="margin-bottom:0;">
+                                <label class="form-label">Subtotal Sistema</label>
+                                <input type="text" class="form-control" value="R$ {{ '%.2f'|format(l.subtotal_sistema(grupo.noites))|replace('.', ',') }}" disabled>
+                            </div>
+                            <div><button type="submit" class="btn btn-primary btn-sm">Salvar</button></div>
+                        </div>
+                    </form>
+                    <form method="post" action="/grupos/{{ grupo.id }}/apartamentos/{{ l.id }}/remover" class="apto-actions">
+                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Remover {{ l.tipo_apartamento.nome }} da composição?')">Remover</button>
+                    </form>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p class="text-muted" style="padding: 1.25rem; margin:0; font-size:14px;">Nenhum tipo de apartamento adicionado ainda.</p>
+            {% endif %}
+
+            <div style="padding: 0.85rem 1.25rem; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; color: var(--text-muted); background: var(--bg); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);">
+                Adicionar Tipo
+            </div>
+            <form method="post" action="/grupos/{{ grupo.id }}/apartamentos">
+                <div class="apto-row-form">
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label class="form-label">Tipo *</label>
+                        <select name="tipo_apartamento_id" id="novo_tipo_apartamento" class="form-control" required>
+                            <option value="">Selecione...</option>
+                            {% for t in tipos_apartamento %}
+                            <option value="{{ t.id }}" data-net="{{ t.valor_diaria_net_padrao }}" data-sistema="{{ t.valor_diaria_sistema_padrao }}">{{ t.nome }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label class="form-label">Quantidade *</label>
+                        <input type="number" name="quantidade" id="novo_quantidade" class="form-control" min="1" value="1" required>
+                    </div>
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label class="form-label">Diária Net</label>
+                        <input type="number" name="valor_diaria_net" id="novo_diaria_net" class="form-control" min="0" step="0.01" placeholder="0,00">
+                    </div>
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label class="form-label">Diária Sistema</label>
+                        <input type="number" name="valor_diaria_sistema" id="novo_diaria_sistema" class="form-control" min="0" step="0.01" placeholder="0,00">
+                    </div>
+                    <div><button type="submit" class="btn btn-primary btn-sm">➕ Adicionar</button></div>
+                </div>
+            </form>
+
+            <div class="detail-grid" style="border-top: 1px solid var(--border);">
+                <div class="detail-item">
+                    <label>Valor Total (Sistema)</label>
+                    <span class="valor-destaque">R$ {{ "%.2f"|format(grupo.valor_total_sistema)|replace(".", ",") }}</span>
+                    {% if grupo.valor_total_sistema_manual %}
+                        <div class="manual-aviso">Valor manual (sobrescreve a soma das linhas)</div>
+                        <form method="post" action="/grupos/{{ grupo.id }}/recalcular-sistema" style="margin-top:0.3rem;">
+                            <button type="submit" class="btn btn-outline btn-sm">↺ Recalcular</button>
+                        </form>
+                    {% else %}
+                        <form method="post" action="/grupos/{{ grupo.id }}/valor-total-sistema/manual" class="manual-form">
+                            <input type="number" name="valor" step="0.01" class="form-control" placeholder="Sobrescrever (R$)">
+                            <button type="submit" class="btn btn-outline btn-sm">Definir</button>
+                        </form>
+                    {% endif %}
+                    <div class="text-muted" style="font-size:11px; margin-top:0.3rem;">Base de pagamento e saldo do grupo (RN-G027).</div>
+                </div>
+                <div class="detail-item">
+                    <label>Valor Total Net <span class="text-muted" style="font-weight:400; text-transform:none;">(referência agência)</span></label>
+                    <span>R$ {{ "%.2f"|format(grupo.valor_total_net)|replace(".", ",") }}</span>
+                    {% if grupo.valor_total_net_manual %}
+                        <div class="manual-aviso">Valor manual (sobrescreve a soma das linhas)</div>
+                        <form method="post" action="/grupos/{{ grupo.id }}/recalcular-net" style="margin-top:0.3rem;">
+                            <button type="submit" class="btn btn-outline btn-sm">↺ Recalcular</button>
+                        </form>
+                    {% else %}
+                        <form method="post" action="/grupos/{{ grupo.id }}/valor-total-net/manual" class="manual-form">
+                            <input type="number" name="valor" step="0.01" class="form-control" placeholder="Sobrescrever (R$)">
+                            <button type="submit" class="btn btn-outline btn-sm">Definir</button>
+                        </form>
+                    {% endif %}
+                </div>
+                <div class="detail-item"><label>Comissão Retida</label><span class="comissao-destaque">R$ {{ "%.2f"|format(grupo.valor_comissao)|replace(".", ",") }}</span></div>
+                <div class="detail-item"><label>Percentual Efetivo</label><span>{{ "%.2f"|format(grupo.percentual_efetivo)|replace(".", ",") }}%</span></div>
+            </div>
+        </div>
+
+        <!-- Prazos -->
+        <div class="detail-section">
+            <div class="detail-section-title">Prazos</div>
+            <div class="detail-grid">
+                <div class="detail-item"><label>Prazo Deadline</label><span>{{ grupo.prazo_deadline.strftime("%d/%m/%Y") if grupo.prazo_deadline else "—" }}</span></div>
+                <div class="detail-item"><label>Prazo Roomlist</label><span>{{ grupo.prazo_roomlist.strftime("%d/%m/%Y") if grupo.prazo_roomlist else "—" }}</span></div>
+            </div>
+        </div>
+
+        {% if grupo.observacao %}
+        <div class="detail-section">
+            <div class="detail-section-title">Observação</div>
+            <div style="padding: 1.25rem;">
+                <p style="margin:0; line-height:1.6;">{{ grupo.observacao }}</p>
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+
+    <!-- Painel lateral -->
+    <div>
+
+        <div class="detail-section">
+            <div class="detail-section-title">Alterar Status</div>
+            <div style="padding: 1.25rem;">
+                <form method="post" action="/grupos/{{ grupo.id }}/status">
+                    <div class="form-group">
+                        <label class="form-label">Novo Status</label>
+                        <select name="status" class="form-control">
+                            {% for s in status_choices %}
+                            <option value="{{ s }}" {% if grupo.status == s %}selected{% endif %}>{{ grupo_status_labels[s] }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Atualizar</button>
+                </form>
+                <div class="text-muted" style="font-size:12px; margin-top:0.5rem;">
+                    Cancelar um grupo é restrito a ADMIN e GERENCIA.
+                </div>
+            </div>
+        </div>
+
+        <div class="detail-section">
+            <div class="detail-section-title">Informações</div>
+            <div style="padding: 1.25rem; display:flex; flex-direction:column; gap:0.75rem;">
+                <div class="detail-item"><label>Registrado por</label><span>{{ grupo.usuario.nome }}</span></div>
+                <div class="detail-item"><label>Criado em</label><span>{{ grupo.criado_em.strftime("%d/%m/%Y %H:%M") }}</span></div>
+                <div class="detail-item"><label>Atualizado em</label><span>{{ grupo.atualizado_em.strftime("%d/%m/%Y %H:%M") }}</span></div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+    var novoTipo = document.getElementById('novo_tipo_apartamento');
+    if (novoTipo) {
+        novoTipo.addEventListener('change', function () {
+            var opt = this.options[this.selectedIndex];
+            document.getElementById('novo_diaria_net').value = opt.dataset.net || 0;
+            document.getElementById('novo_diaria_sistema').value = opt.dataset.sistema || 0;
+        });
+    }
+</script>

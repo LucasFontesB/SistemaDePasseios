@@ -1,0 +1,129 @@
+<style>
+.detail-section {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 1.25rem;
+    box-shadow: var(--shadow);
+}
+.detail-section-title {
+    padding: 0.85rem 1.25rem;
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+    border-radius: var(--radius) var(--radius) 0 0;
+}
+.detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1.25rem;
+    padding: 1.25rem;
+}
+.detail-item label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    display: block;
+    margin-bottom: 0.2rem;
+}
+.detail-item span {
+    font-size: 15px;
+    color: var(--text);
+    font-weight: 500;
+}
+.valor-destaque    { font-size: 20px !important; color: var(--success) !important; }
+.comissao-destaque { font-size: 20px !important; color: var(--primary) !important; }
+</style>
+
+<!-- Resumo financeiro -->
+<div class="detail-section">
+    <div class="detail-section-title">Resumo Financeiro (sobre o valor sistema — RN-G027)</div>
+    <div class="detail-grid">
+        <div class="detail-item">
+            <label>Valor Total</label>
+            <span class="valor-destaque">R$ {{ "%.2f"|format(grupo.valor_total_sistema)|replace(".", ",") }}</span>
+        </div>
+        <div class="detail-item">
+            <label>Valor Pago</label>
+            <span class="comissao-destaque">R$ {{ "%.2f"|format(grupo.valor_pago)|replace(".", ",") }}</span>
+        </div>
+        <div class="detail-item">
+            <label>Saldo</label>
+            <span>R$ {{ "%.2f"|format(grupo.saldo)|replace(".", ",") }}</span>
+        </div>
+    </div>
+</div>
+
+<!-- Histórico -->
+<div class="detail-section">
+    <div class="detail-section-title">Histórico de Pagamentos</div>
+    <div style="padding: 0 1.25rem 1.25rem;">
+
+        {% if pagamentos %}
+        <table class="table" style="margin:0 0 1rem;">
+            <thead>
+                <tr>
+                    <th>Data</th>
+                    <th>Valor</th>
+                    <th>Forma</th>
+                    <th>Observação</th>
+                    <th>Registrado por</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in pagamentos %}
+                <tr>
+                    <td style="white-space:nowrap; font-size:13px;">{{ p.data_pagamento.strftime("%d/%m/%Y") }}</td>
+                    <td style="{% if p.valor < 0 %}color: var(--danger);{% endif %}">
+                        R$ {{ "%.2f"|format(p.valor)|replace(".", ",") }}
+                    </td>
+                    <td>{{ forma_pagamento_labels.get(p.forma_pagamento, p.forma_pagamento or "—") }}</td>
+                    <td class="text-muted" style="font-size:13px;">{{ p.observacao or "—" }}</td>
+                    <td class="text-muted" style="font-size:12px;">{{ p.usuario.nome.split()[0] if p.usuario else "—" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p class="text-muted" style="margin:0 0 1rem; font-size:14px;">Nenhum pagamento registrado.</p>
+        {% endif %}
+
+        <!-- Novo pagamento -->
+        <form method="post" action="/grupos/{{ grupo.id }}/pagamentos">
+            <div style="display:flex; gap:0.75rem; align-items:flex-end; flex-wrap:wrap;">
+                <div class="form-group" style="margin-bottom:0; flex:1; min-width:140px;">
+                    <label class="form-label">Valor (R$)</label>
+                    <input type="number" name="valor" class="form-control" step="0.01" placeholder="0,00" required>
+                </div>
+                <div class="form-group" style="margin-bottom:0; flex:1; min-width:140px;">
+                    <label class="form-label">Data</label>
+                    <input type="date" name="data_pagamento" class="form-control" value="{{ hoje }}">
+                </div>
+                <div class="form-group" style="margin-bottom:0; flex:1; min-width:160px;">
+                    <label class="form-label">Forma de Pagamento</label>
+                    <select name="forma_pagamento" class="form-control">
+                        <option value="">Não informada</option>
+                        {% for f in forma_pagamento_choices %}
+                        <option value="{{ f }}">{{ forma_pagamento_labels[f] }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group" style="margin-bottom:0; flex:2; min-width:200px;">
+                    <label class="form-label">Observação</label>
+                    <input type="text" name="observacao" class="form-control" placeholder="Ex: Sinal pago pela agência">
+                </div>
+                <button type="submit" class="btn btn-primary">Registrar</button>
+            </div>
+            <div class="text-muted" style="font-size:12px; margin-top:0.3rem;">
+                Pagamentos nunca são excluídos. Para corrigir um lançamento errado, registre um novo pagamento com valor negativo (ajuste).
+            </div>
+        </form>
+
+    </div>
+</div>

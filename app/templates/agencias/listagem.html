@@ -1,0 +1,55 @@
+{% extends "layouts/base.html" %}
+{% block title %}Agências — Gestão de Passeios{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <div>
+        <div class="breadcrumb">
+            <a href="/dashboard">Dashboard</a>
+            <span class="breadcrumb-sep">›</span>
+            <span>Agências</span>
+        </div>
+        <h1 class="page-title">Agências</h1>
+    </div>
+    <a href="/agencias/nova" class="btn btn-primary">➕ Nova Agência</a>
+</div>
+
+<div class="table-wrapper">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Nome</th>
+                <th>Nome Fantasia</th>
+                <th>Contato</th>
+                <th>Telefone</th>
+                <th>% Comissão Padrão</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if agencias %}
+                {% for a in agencias %}
+                <tr>
+                    <td><strong>{{ a.nome }}</strong></td>
+                    <td class="text-muted">{{ a.nome_fantasia or "—" }}</td>
+                    <td class="text-muted">{{ a.contato or "—" }}</td>
+                    <td class="text-muted">{{ a.telefone or "—" }}</td>
+                    <td>{{ "%.2f"|format(a.percentual_comissao_padrao)|replace(".", ",") }}%</td>
+                    <td style="white-space:nowrap;">
+                        <a href="/agencias/{{ a.id }}/editar" class="btn btn-outline btn-sm">Editar</a>
+                        <form method="post" action="/agencias/{{ a.id }}/desativar" style="display:inline;">
+                            <button type="submit" class="btn btn-danger btn-sm"
+                                onclick="return confirm('Desativar {{ a.nome }}?')">Desativar</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr><td colspan="6" class="table-empty">Nenhuma agência cadastrada.</td></tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}

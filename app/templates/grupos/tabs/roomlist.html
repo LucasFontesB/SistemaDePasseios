@@ -1,0 +1,199 @@
+<style>
+.detail-section {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 0.85rem;
+    box-shadow: var(--shadow);
+}
+.detail-section-title {
+    padding: 0.85rem 1.25rem;
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+    border-radius: var(--radius) var(--radius) 0 0;
+}
+.roomlist-row-form {
+    padding: 1rem 1.25rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 0.75rem;
+    align-items: end;
+}
+.roomlist-cortesia {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 0.55rem;
+}
+.roomlist-actions {
+    padding: 0 1.25rem 1rem;
+    display: flex;
+    gap: 0.5rem;
+}
+.anexo-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.6rem 0;
+    border-bottom: 1px solid var(--border);
+}
+.anexo-item:last-child { border-bottom: none; }
+</style>
+
+<!-- Exportação (RN-G033) -->
+<div style="display:flex; justify-content:flex-end; gap:0.5rem; margin-bottom:0.85rem;">
+    <a href="/grupos/{{ grupo.id }}/roomlist/pdf" target="_blank" class="btn btn-outline btn-sm">🖨️ Exportar PDF</a>
+    <a href="/grupos/{{ grupo.id }}/roomlist/excel" class="btn btn-outline btn-sm">📊 Exportar Excel</a>
+</div>
+
+<!-- Registros existentes (edição em linha) -->
+{% if roomlist %}
+    {% for item in roomlist %}
+    <div class="detail-section">
+        <form method="post" action="/grupos/{{ grupo.id }}/roomlist/{{ item.id }}/editar">
+            <div class="roomlist-row-form">
+                <div class="form-group" style="margin-bottom:0;">
+                    <label class="form-label">Apartamento</label>
+                    <input type="text" name="apartamento" class="form-control" value="{{ item.apartamento or '' }}">
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                    <label class="form-label">Hóspede *</label>
+                    <input type="text" name="hospede_nome" class="form-control" value="{{ item.hospede_nome }}" required>
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                    <label class="form-label">Documento</label>
+                    <input type="text" name="documento" class="form-control" value="{{ item.documento or '' }}">
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                    <label class="form-label">Tipo Apto</label>
+                    <select name="tipo_apartamento_id" class="form-control">
+                        <option value="">—</option>
+                        {% for t in tipos_apartamento %}
+                        <option value="{{ t.id }}" {% if item.tipo_apartamento_id == t.id %}selected{% endif %}>{{ t.nome }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                    <label class="form-label">Check-in</label>
+                    <input type="date" name="check_in" class="form-control" value="{{ item.check_in.isoformat() if item.check_in else '' }}">
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                    <label class="form-label">Check-out</label>
+                    <input type="date" name="check_out" class="form-control" value="{{ item.check_out.isoformat() if item.check_out else '' }}">
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                    <label class="form-label">Observação</label>
+                    <input type="text" name="observacao" class="form-control" value="{{ item.observacao or '' }}">
+                </div>
+                <label class="roomlist-cortesia">
+                    <input type="checkbox" name="cortesia" {% if item.cortesia %}checked{% endif %}> Cortesia
+                </label>
+                <div>
+                    <button type="submit" class="btn btn-primary btn-sm">Salvar</button>
+                </div>
+            </div>
+        </form>
+        <form method="post" action="/grupos/{{ grupo.id }}/roomlist/{{ item.id }}/remover" class="roomlist-actions">
+            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Remover este registro da roomlist?')">Remover</button>
+        </form>
+    </div>
+    {% endfor %}
+{% else %}
+    <p class="text-muted" style="font-size:14px;">Nenhum hóspede cadastrado na roomlist ainda.</p>
+{% endif %}
+
+<!-- Adicionar novo -->
+<div class="detail-section">
+    <div class="detail-section-title">Adicionar à Roomlist</div>
+    <form method="post" action="/grupos/{{ grupo.id }}/roomlist">
+        <div class="roomlist-row-form">
+            <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">Apartamento</label>
+                <input type="text" name="apartamento" class="form-control" placeholder="Ex: 101">
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">Hóspede *</label>
+                <input type="text" name="hospede_nome" class="form-control" placeholder="Nome completo" required>
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">Documento</label>
+                <input type="text" name="documento" class="form-control">
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">Tipo Apto</label>
+                <select name="tipo_apartamento_id" class="form-control">
+                    <option value="">—</option>
+                    {% for t in tipos_apartamento %}
+                    <option value="{{ t.id }}">{{ t.nome }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">Check-in</label>
+                <input type="date" name="check_in" class="form-control">
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">Check-out</label>
+                <input type="date" name="check_out" class="form-control">
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">Observação</label>
+                <input type="text" name="observacao" class="form-control">
+            </div>
+            <label class="roomlist-cortesia">
+                <input type="checkbox" name="cortesia"> Cortesia
+            </label>
+            <div>
+                <button type="submit" class="btn btn-primary btn-sm">➕ Adicionar</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Anexo da roomlist (RN-G024) -->
+<div class="detail-section">
+    <div class="detail-section-title">Anexo da Roomlist</div>
+    <div style="padding: 1.25rem;">
+
+        {% if anexos_roomlist %}
+            {% for a in anexos_roomlist %}
+            <div class="anexo-item">
+                <div>
+                    <span style="font-size:14px;">📎 {{ a.nome_original }}</span>
+                    <span class="text-muted" style="font-size:12px; margin-left:0.5rem;">
+                        {{ (a.tamanho_bytes / 1024)|int if a.tamanho_bytes else 0 }} KB •
+                        enviado em {{ a.enviado_em.strftime("%d/%m/%Y %H:%M") }} por {{ a.usuario.nome.split()[0] if a.usuario else "—" }}
+                    </span>
+                </div>
+                <div style="display:flex; gap:0.5rem;">
+                    <a href="/grupos/{{ grupo.id }}/anexos/{{ a.id }}" class="btn btn-outline btn-sm">⬇ Baixar</a>
+                    <form method="post" action="/grupos/{{ grupo.id }}/anexos/{{ a.id }}/remover" style="margin:0;">
+                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Remover anexo?')">✕</button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p class="text-muted" style="margin:0 0 0.75rem; font-size:14px;">Nenhum anexo enviado por aqui ainda — geralmente é a agência quem envia a roomlist pronta.</p>
+        {% endif %}
+
+        <form method="post" action="/grupos/{{ grupo.id }}/anexos" enctype="multipart/form-data" style="margin-top: 1rem;">
+            <input type="hidden" name="tipo" value="ROOMLIST">
+            <div style="display:flex; gap:0.75rem; align-items:center; flex-wrap:wrap;">
+                <input type="file" name="arquivo" class="form-control" accept=".pdf,.jpg,.jpeg,.png" style="flex:1; min-width:200px;">
+                <button type="submit" class="btn btn-primary">📎 Anexar</button>
+            </div>
+            <div class="text-muted" style="font-size:12px; margin-top:0.3rem;">
+                PDF, JPG, JPEG, PNG — máx. 10 MB. Também aparece na aba Anexos.
+            </div>
+        </form>
+
+    </div>
+</div>
