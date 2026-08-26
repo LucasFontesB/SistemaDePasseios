@@ -6,26 +6,47 @@ Sistema web interno para gerenciamento de vendas de passeios turísticos de hote
 
 ## 📋 Sobre o Projeto
 
-O sistema permite que recepcionistas registrem vendas de passeios, anexem comprovantes de pagamento e acompanhem o status de cada reserva. A gerência tem acesso a relatórios de vendas e comissões, enquanto o administrador gerencia usuários, passeios e embarcações.
+O sistema permite que recepcionistas registrem vendas de passeios, anexem comprovantes de pagamento e acompanhem o status de cada reserva. Também gerencia hospedagem de grupos sob regime de tarifa net/sistema (agências e guias, composição por tipo de apartamento, orçamentos versionados, roomlist e pagamentos). A gerência tem acesso a relatórios de vendas, comissões e ao relatório gerencial, enquanto o administrador gerencia usuários, passeios e embarcações.
 
 ---
 
 ## ✨ Funcionalidades
 
+### Vendas de Passeios
+
 - **Autenticação** com controle de acesso por perfil (Admin, Gerência, Recepção)
 - **Dashboard** com indicadores do dia, do mês e próximos embarques
 - **Cadastro de Vendas** com cálculo automático de comissão
+- **Múltiplos pagamentos por venda** — uma venda pode ter mais de um lançamento de pagamento
 - **Agenda de Embarques** — visão diária das saídas
 - **Upload de Comprovantes** — PDF, JPG, JPEG e PNG
 - **Histórico de Alterações** por venda
 - **Relatório de Vendas** por período, passeio, status e recepcionista
 - **Relatório de Comissões** individual e pelo critério do hotel
-- **Geração de PDF** — voucher e recibo em uma página com linha de corte
+- **Relatório Gerencial** com exportação em PDF
+- **Geração de PDF** — voucher e recibo em uma página com linha de corte, sempre pelo valor efetivamente pago
 - **Envio via WhatsApp** — mensagem de confirmação pré-formatada
 - **Cadastros** de passeios, tipos de passeio e embarcações
 - **Gerenciamento de Usuários**
 - **Mensagens de sucesso e erros amigáveis**
 - **Perfil do usuário** — alteração de nome e senha
+
+### Módulo de Grupos (hospedagem)
+
+Especificação completa de regras de negócio em [`docs/GRUPOS.md`](docs/GRUPOS.md).
+
+- **Cadastro de Grupos** com código sequencial automático, período de estadia, quantidade prevista de apartamentos e prazos de deadline/roomlist
+- **Agências e Guias** com percentual de comissão padrão — cadastro próprio, e também criação rápida via modal direto no formulário do grupo, sem perder o que já foi preenchido
+- **Composição por Tipo de Apartamento** (Solteiro, Casal, Duplo, Triplo, Quádruplo, Suíte Master I/II) com tarifa dupla — net e sistema — por linha, com totais recalculados automaticamente (ou sobrescritos manualmente quando necessário)
+- **Base financeira pelo valor sistema** — saldo e valor pago do grupo são sempre calculados sobre o que o hotel efetivamente recebe; o valor net fica como referência de comissão/agência
+- **Alertas não bloqueantes** quando a composição ultrapassa a quantidade prevista de apartamentos, ou quando os prazos de roomlist/pagamento estão vencendo
+- **Orçamentos versionados** — cada versão gerada congela um snapshot completo (composição, tarifas, pagamentos, prazos); aprovar uma versão substitui a composição vigente do grupo pela composição congelada
+- **Detecção automática de divergência** entre a última versão de orçamento gerada e o estado atual do grupo
+- **Roomlist sincronizada com a composição** — alterar a quantidade de um tipo cria ou remove linhas de hóspede automaticamente; uma redução nunca apaga um hóspede já cadastrado, é recusada com mensagem clara nesse caso
+- **Exportação da roomlist em PDF e Excel**, agrupada por tipo de apartamento
+- **Controle de pagamentos** do grupo, sem exclusão física — correções são sempre um novo lançamento
+- **Anexos** (comprovantes, roomlist, orçamentos assinados) com upload/download/remoção
+- **Linha do tempo de atividade** unificando comentários e histórico de alterações, com identificação específica por evento e horário exato
 
 ---
 
@@ -37,6 +58,7 @@ O sistema permite que recepcionistas registrem vendas de passeios, anexem compro
 | Banco de Dados | PostgreSQL |
 | Frontend | HTML5, CSS3, JavaScript (vanilla) |
 | PDF | ReportLab |
+| Planilhas (Excel) | openpyxl |
 | Servidor | Uvicorn |
 
 ---
@@ -154,16 +176,20 @@ app/static/img/logo.png
 | Perfil | Acesso |
 |---|---|
 | **ADMIN** | Total — inclui gerenciamento de usuários |
-| **GERENCIA** | Dashboard, Vendas, Cadastros e Relatórios |
-| **RECEPCAO** | Dashboard e Vendas |
+| **GERENCIA** | Dashboard, Vendas, Grupos, Cadastros e Relatórios |
+| **RECEPCAO** | Dashboard, Vendas e Grupos (sem Cadastros, Relatórios e Usuários) |
 
 ---
 
 ## 🗄️ Banco de Dados
 
-O banco utiliza UUID como chave primária em todas as tabelas e soft delete nos cadastros. As vendas nunca são removidas fisicamente — registros cancelados ou reembolsados são mantidos para auditoria.
+O banco utiliza UUID como chave primária em todas as tabelas e soft delete nos cadastros. Vendas, grupos, orçamentos e pagamentos nunca são removidos fisicamente — registros cancelados, reembolsados ou corrigidos são mantidos para auditoria.
 
-Tabelas principais: `usuarios`, `passeios`, `tipos_passeio`, `embarcacoes`, `vendas`, `comprovantes`, `venda_historico`.
+Modelagem completa em [`docs/DATABASE.md`](docs/DATABASE.md).
+
+Tabelas principais:
+- **Vendas**: `usuarios`, `passeios`, `tipos_passeio`, `embarcacoes`, `vendas`, `comprovantes`, `venda_historico`
+- **Grupos**: `grupos`, `grupos_apartamentos`, `grupos_orcamentos` (+ tabelas de snapshot), `grupos_pagamentos`, `grupos_roomlist`, `grupos_anexos`, `grupos_historico`, `grupos_comentarios`, `agencias`, `guias`, `tipos_apartamento`
 
 ---
 
